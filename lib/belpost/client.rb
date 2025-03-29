@@ -41,5 +41,16 @@ module Belpost
     def fetch_hs_codes
       @api_service.get("/api/v1/business/postal-deliveries/hs-codes/list")
     end
+
+    # Fetches validation data for postal deliveries based on the country code.
+    #
+    # @param country_code [String] The country code (e.g., "BY", "RU-LEN").
+    # @return [Hash] The parsed JSON response containing validation data.
+    # @raise [Belpost::ApiError] If the API returns an error response.
+    def validate_postal_delivery(country_code)
+      country_code = country_code.upcase
+
+      @api_service.get("/api/v1/business/postal-deliveries/validation/#{country_code}")
+    end
   end
 end

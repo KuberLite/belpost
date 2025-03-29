@@ -57,7 +57,7 @@ module Belpost
     # @param uri [URI] The URI of the request.
     # @param request [Net::HTTP::Request] The HTTP request object.
     # @return [Hash] The parsed JSON response from the API.
-    # @raise [BelpostApi::ApiError] If the API returns an error response.
+    # @raise [Belpost::ApiError] If the API returns an error response.
     def execute_request(uri, request)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true if uri.scheme == "https"
