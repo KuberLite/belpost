@@ -9,6 +9,9 @@ require_relative "belpost/errors"
 require_relative "belpost/retry"
 require_relative "belpost/models/parcel"
 require_relative "belpost/models/api_response"
+require_relative "belpost/models/customs_declaration"
+require_relative "belpost/models/parcel_builder"
+require_relative "belpost/validations/parcel_schema"
 
 # Module for working with Belpochta API.
 # Provides an interface for configuring and interacting with the API.

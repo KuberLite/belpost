@@ -22,4 +22,6 @@ module Belpost
   class NetworkError < Error; end
   class TimeoutError < Error; end
   class ValidationError < Error; end
+  class RequestError < Error; end
+  class ParseError < Error; end
 end

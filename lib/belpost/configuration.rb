@@ -7,9 +7,9 @@ module Belpost
     attr_accessor :base_url, :jwt_token, :timeout
 
     def initialize
-      @base_url = ENV.fetch("BELPOST_API_URL", nil)
+      @base_url = ENV.fetch("BELPOST_API_URL")
       @jwt_token = ENV.fetch("BELPOST_JWT_TOKEN", nil)
-      @timeout = 10
+      @timeout = ENV.fetch("BELPOST_TIMEOUT", 10).to_i
     end
   end
 end

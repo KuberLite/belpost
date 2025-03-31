@@ -34,11 +34,15 @@ module Belpost
         response = execute_request(uri, request)
         log_response(response)
 
-        Models::ApiResponse.new(
-          data: JSON.parse(response.body),
-          status_code: response.code.to_i,
-          headers: response.to_hash
-        )
+        begin
+          Models::ApiResponse.new(
+            data: JSON.parse(response.body),
+            status_code: response.code.to_i,
+            headers: response.to_hash
+          )
+        rescue JSON::ParserError => e
+          raise ParseError, "Failed to parse JSON response: #{e.message}"
+        end
       end
     end
 
@@ -58,11 +62,69 @@ module Belpost
         response = execute_request(uri, request)
         log_response(response)
 
-        Models::ApiResponse.new(
-          data: JSON.parse(response.body),
-          status_code: response.code.to_i,
-          headers: response.to_hash
-        )
+        begin
+          Models::ApiResponse.new(
+            data: JSON.parse(response.body),
+            status_code: response.code.to_i,
+            headers: response.to_hash
+          )
+        rescue JSON::ParserError => e
+          raise ParseError, "Failed to parse JSON response: #{e.message}"
+        end
+      end
+    end
+    
+    # Performs a PUT request to the specified path with the given body.
+    #
+    # @param path [String] The API endpoint path.
+    # @param body [Hash] The request body as a hash.
+    # @return [Models::ApiResponse] The parsed JSON response from the API.
+    def put(path, body)
+      Retry.with_retry do
+        uri = URI("#{@base_url}#{path}")
+        request = Net::HTTP::Put.new(uri)
+        add_headers(request)
+        request.body = body.to_json
+
+        log_request(request)
+        response = execute_request(uri, request)
+        log_response(response)
+
+        begin
+          Models::ApiResponse.new(
+            data: JSON.parse(response.body),
+            status_code: response.code.to_i,
+            headers: response.to_hash
+          )
+        rescue JSON::ParserError => e
+          raise ParseError, "Failed to parse JSON response: #{e.message}"
+        end
+      end
+    end
+    
+    # Performs a DELETE request to the specified path.
+    #
+    # @param path [String] The API endpoint path.
+    # @return [Models::ApiResponse] The parsed JSON response from the API.
+    def delete(path)
+      Retry.with_retry do
+        uri = URI("#{@base_url}#{path}")
+        request = Net::HTTP::Delete.new(uri)
+        add_headers(request)
+
+        log_request(request)
+        response = execute_request(uri, request)
+        log_response(response)
+
+        begin
+          Models::ApiResponse.new(
+            data: JSON.parse(response.body),
+            status_code: response.code.to_i,
+            headers: response.to_hash
+          )
+        rescue JSON::ParserError => e
+          raise ParseError, "Failed to parse JSON response: #{e.message}"
+        end
       end
     end
 
@@ -92,7 +154,7 @@ module Belpost
         response = http.request(request)
         handle_response(response)
       rescue Net::OpenTimeout, Net::ReadTimeout
-        raise TimeoutError, "Request timed out after #{@timeout} seconds"
+        raise RequestError, "Request timed out after #{@timeout} seconds"
       rescue Net::HTTPError => e
         case e.response.code
         when "401", "403"
