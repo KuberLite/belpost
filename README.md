@@ -332,6 +332,19 @@ Full documentation on the Belpost API is available in the official documentation
 
 After cloning the repository, run `bin/setup` to install dependencies. Then run `rake spec` to run tests. You can also run `bin/console` for an interactive REPL that allows you to experiment.
 
+### Setting up test environment
+
+For running tests, the gem uses environment variables that can be configured in different ways:
+
+1. Copy the `.env.test.example` file to `.env.test` and adjust the values:
+   ```
+   cp .env.test.example .env.test
+   ```
+
+2. The test suite will automatically use these values, or fall back to default test values if not provided.
+
+3. For CI environments, the necessary environment variables are already configured in the GitHub workflow files.
+
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Continuous Integration (CI/CD)

@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 require "belpost"
+require "dotenv"
+
+# Load environment variables from .env.test if it exists
+Dotenv.load(".env.test")
+
+# Ensure test environment has necessary variables
+ENV["BELPOST_API_URL"] ||= "https://test-api.belpost.by"
+ENV["BELPOST_JWT_TOKEN"] ||= "test-token-for-testing"
+ENV["BELPOST_TIMEOUT"] ||= "5"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -11,5 +20,10 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+  
+  # Reset configuration before each test
+  config.before(:each) do
+    Belpost.reset
   end
 end

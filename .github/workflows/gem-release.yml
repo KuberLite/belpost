@@ -12,6 +12,11 @@ jobs:
     permissions:
       contents: read
       packages: write
+    
+    env:
+      BELPOST_API_URL: https://testapi.belpost.by
+      BELPOST_JWT_TOKEN: test-token-for-ci
+      BELPOST_TIMEOUT: 5
 
     steps:
     - uses: actions/checkout@v3

@@ -13,6 +13,11 @@ jobs:
       matrix:
         ruby-version: ['2.6', '2.7', '3.0', '3.1']
       fail-fast: false
+    
+    env:
+      BELPOST_API_URL: https://test-api.belpost.by
+      BELPOST_JWT_TOKEN: test-token-for-ci
+      BELPOST_TIMEOUT: 5
 
     steps:
     - uses: actions/checkout@v3
