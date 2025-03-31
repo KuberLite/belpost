@@ -1,8 +1,11 @@
 # Belpost
 
-Client for working with Belpochta API (Belpochta).
+Client for working with Belpochta API (Belpost).
 
-## Установка
+![Tests](https://github.com/KuberLite/belpost/actions/workflows/test.yml/badge.svg)
+![Gem Version](https://badge.fury.io/rb/belpost.svg)
+
+## Installation
 
 Add this line to your application's Gemfile:
 
@@ -10,7 +13,7 @@ Add this line to your application's Gemfile:
 gem 'belpost'
 ```
 
-And do:
+And then execute:
 
 ```bash
 $ bundle install
@@ -22,15 +25,15 @@ Or install it yourself:
 $ gem install belpost
 ```
 
-## Настройка
+## Configuration
 
-Configure the client to work with the Belpochta API:
+Configure the client to work with the Belpost API:
 
 ```ruby
 require 'belpost'
 
 Belpost.configure do |config|
-  config.jwt_token = 'your_jwt_token_from_Belpochta'
+  config.jwt_token = 'your_jwt_token_from_belpost'
   config.base_url = 'https://api.belpost.by'
   config.timeout = 30 # Timeout in seconds (default 10)
 end
@@ -39,16 +42,16 @@ end
 You can also use environment variables:
 
 ```
-BELPOST_JWT_TOKEN=your_jwt_token_from_Belpochta
+BELPOST_JWT_TOKEN=your_jwt_token_from_belpost
 BELPOST_BASE_URL=https://api.belpost.by
 BELPOST_TIMEOUT=30
 ```
 
 ## Usage
 
-### Parcel creation
+### Creating a parcel
 
-#### Base example
+#### Basic example
 
 ```ruby
 client = Belpost::Client.new
@@ -82,23 +85,23 @@ parcel_data = {
   sender: {
     type: "legal_person",
     info: {
-      organization_name: "ООО \"Компания\"",
+      organization_name: "LLC \"Company\"",
       taxpayer_number: "123456789",
       IBAN: "BY26BAPB30123418400100000000",
       BIC: "BAPBBY2X",
-      bank: "ОАО 'БЕЛАГРОПРОМБАНК'"
+      bank: "JSC 'BELAGROPROMBANK'"
     },
     location: {
       code: "225212",
-      region: "Брестская",
-      district: "Березовский",
+      region: "Brest",
+      district: "Bereza",
       locality: {
-        type: "город",
-        name: "Береза"
+        type: "city",
+        name: "Bereza"
       },
       road: {
-        type: "улица",
-        name: "Ленина"
+        type: "street",
+        name: "Lenin"
       },
       building: "1",
       housing: "",
@@ -110,21 +113,21 @@ parcel_data = {
   recipient: {
     type: "natural_person",
     info: {
-      first_name: "Иван",
-      second_name: "Иванович",
-      last_name: "Иванов"
+      first_name: "Ivan",
+      second_name: "Ivanovich",
+      last_name: "Ivanov"
     },
     location: {
       code: "231365",
-      region: "Гродненская",
-      district: "Ивьевский",
+      region: "Grodno",
+      district: "Ivye",
       locality: {
-        type: "деревня",
-        name: "Дуды"
+        type: "village",
+        name: "Dudy"
       },
       road: {
-        type: "улица",
-        name: "Центральная"
+        type: "street",
+        name: "Central"
       },
       building: "1",
       housing: "",
@@ -136,40 +139,40 @@ parcel_data = {
 }
 
 response = client.create_parcel(parcel_data)
-puts "Трекинг код: #{response["data"]["parcel"]["s10code"]}"
+puts "Tracking code: #{response["data"]["parcel"]["s10code"]}"
 ```
 
-#### Usage ParcelBuilder
+#### Using ParcelBuilder
 
 ```ruby
 client = Belpost::Client.new
 
-# Создание внутренней посылки
+# Creating a domestic parcel
 parcel_data = Belpost::Models::ParcelBuilder.new
   .with_type("package")
   .with_attachment_type("products")
-  .with_weight(1500) # вес в граммах
-  .with_dimensions(300, 200, 100) # длина, ширина, высота в мм
+  .with_weight(1500) # weight in grams
+  .with_dimensions(300, 200, 100) # length, width, height in mm
   .to_country("BY")
   .with_declared_value(100)
   .with_cash_on_delivery(50)
   .add_service(:simple_notification)
   .add_service(:email_notification)
-  .from_legal_person("ООО \"Компания\"")
+  .from_legal_person("LLC \"Company\"")
   .with_sender_details(
     taxpayer_number: "123456789",
-    bank: "ОАО 'БЕЛАГРОПРОМБАНК'",
+    bank: "JSC 'BELAGROPROMBANK'",
     iban: "BY26BAPB30123418400100000000",
     bic: "BAPBBY2X"
   )
   .with_sender_location(
     postal_code: "225212",
-    region: "Брестская",
-    district: "Березовский",
-    locality_type: "город",
-    locality_name: "Береза",
-    road_type: "улица",
-    road_name: "Ленина",
+    region: "Brest",
+    district: "Bereza",
+    locality_type: "city",
+    locality_name: "Bereza",
+    road_type: "street",
+    road_name: "Lenin",
     building: "1"
   )
   .with_sender_contact(
@@ -177,18 +180,18 @@ parcel_data = Belpost::Models::ParcelBuilder.new
     phone: "375291234567"
   )
   .to_natural_person(
-    first_name: "Иван",
-    last_name: "Иванов", 
-    second_name: "Иванович"
+    first_name: "Ivan",
+    last_name: "Ivanov", 
+    second_name: "Ivanovich"
   )
   .with_recipient_location(
     postal_code: "231365",
-    region: "Гродненская",
-    district: "Ивьевский",
-    locality_type: "деревня",
-    locality_name: "Дуды",
-    road_type: "улица",
-    road_name: "Центральная",
+    region: "Grodno",
+    district: "Ivye",
+    locality_type: "village",
+    locality_name: "Dudy",
+    road_type: "street",
+    road_name: "Central",
     building: "1"
   )
   .with_recipient_contact(
@@ -197,7 +200,7 @@ parcel_data = Belpost::Models::ParcelBuilder.new
   .build
 
 response = client.create_parcel(parcel_data)
-puts "Трекинг код: #{response["data"]["parcel"]["s10code"]}"
+puts "Tracking code: #{response["data"]["parcel"]["s10code"]}"
 ```
 
 #### Creating an international parcel with a customs declaration
@@ -211,10 +214,10 @@ customs_declaration.set_category("gift")
 customs_declaration.set_price("USD", 50)
 customs_declaration.add_item(
   {
-    name: "Книга",
-    local: "Книга",
+    name: "Book",
+    local: "Book",
     unit: {
-      local: "ШТ",
+      local: "PCS",
       en: "PCS"
     },
     count: 1,
@@ -232,17 +235,17 @@ parcel_data = Belpost::Models::ParcelBuilder.new
   .with_type("package")
   .with_attachment_type("products")
   .with_weight(500)
-  .to_country("DE") # Германия
+  .to_country("DE") # Germany
   .with_declared_value(50, "USD")
-  .from_legal_person("ООО \"Компания\"")
+  .from_legal_person("LLC \"Company\"")
   .with_sender_location(
     postal_code: "225212",
-    region: "Брестская",
-    district: "Березовский",
-    locality_type: "город",
-    locality_name: "Береза",
-    road_type: "улица",
-    road_name: "Ленина",
+    region: "Brest",
+    district: "Bereza",
+    locality_type: "city",
+    locality_name: "Bereza",
+    road_type: "street",
+    road_name: "Lenin",
     building: "1"
   )
   .with_sender_contact(
@@ -265,7 +268,7 @@ parcel_data = Belpost::Models::ParcelBuilder.new
   .build
 
 response = client.create_parcel(parcel_data)
-puts "Трекинг код: #{response["data"]["parcel"]["s10code"]}"
+puts "Tracking code: #{response["data"]["parcel"]["s10code"]}"
 ```
 
 ### Getting a list of available countries
@@ -304,7 +307,7 @@ The client may throw the following exceptions:
 - `Belpost::RateLimitError` - request limit exceeded
 - `Belpost::ServerError` - server error
 - `Belpost::NetworkError` - network error
-- `Belpost::TimeoutError` - request timeout
+- `Belpost::RequestError` - request timeout
 
 Example of error handling:
 
@@ -313,21 +316,37 @@ begin
   client = Belpost::Client.new
   response = client.create_parcel(parcel_data)
 rescue Belpost::ValidationError => e
-  puts "Ошибка валидации: #{e.message}"
+  puts "Validation error: #{e.message}"
 rescue Belpost::AuthenticationError => e
-  puts "Ошибка аутентификации: #{e.message}"
+  puts "Authentication error: #{e.message}"
 rescue Belpost::ApiError => e
-  puts "Ошибка API: #{e.message}"
+  puts "API error: #{e.message}"
 end
 ```
+
 ## Documentation
 
-Full documentation on the Belpochta API is available in the official documentation.
+Full documentation on the Belpost API is available in the official documentation.
 
 ## Development
 
-After cloning the repository, run `bin/setup` to install dependencies. Then run `rake spec` to run tests.
+After cloning the repository, run `bin/setup` to install dependencies. Then run `rake spec` to run tests. You can also run `bin/console` for an interactive REPL that allows you to experiment.
+
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+## Continuous Integration (CI/CD)
+
+The project is set up to use GitHub Actions for continuous integration (CI) and continuous delivery (CD):
+
+1. **Testing**: Every push and pull request to the `master` branch automatically runs tests on various Ruby versions.
+2. **Release**: When a tag starting with `v` is created (e.g., `v0.1.0`), the gem will be automatically published to RubyGems.
+
+For more detailed information about the release process, see the [RELEASING.md](RELEASING.md) file.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub.
+For information on how to contribute to the project, please see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
