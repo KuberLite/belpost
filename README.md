@@ -1,22 +1,22 @@
 # Belpost
 
-Клиент для работы с Belpochta API (Белпочта).
+Client for working with Belpochta API (Belpochta).
 
 ## Установка
 
-Добавьте эту строку в Gemfile вашего приложения:
+Add this line to your application's Gemfile:
 
 ```ruby
 gem 'belpost'
 ```
 
-И выполните:
+And do:
 
 ```bash
 $ bundle install
 ```
 
-Или установите самостоятельно:
+Or install it yourself:
 
 ```bash
 $ gem install belpost
@@ -24,31 +24,31 @@ $ gem install belpost
 
 ## Настройка
 
-Настройте клиент для работы с API Белпочты:
+Configure the client to work with the Belpochta API:
 
 ```ruby
 require 'belpost'
 
 Belpost.configure do |config|
-  config.jwt_token = 'ваш_jwt_токен_от_Белпочты'
+  config.jwt_token = 'your_jwt_token_from_Belpochta'
   config.base_url = 'https://api.belpost.by'
-  config.timeout = 30 # Таймаут в секундах (по умолчанию 10)
+  config.timeout = 30 # Timeout in seconds (default 10)
 end
 ```
 
-Вы также можете использовать переменные окружения:
+You can also use environment variables:
 
 ```
-BELPOST_JWT_TOKEN=ваш_jwt_токен_от_Белпочты
+BELPOST_JWT_TOKEN=your_jwt_token_from_Belpochta
 BELPOST_BASE_URL=https://api.belpost.by
 BELPOST_TIMEOUT=30
 ```
 
-## Использование
+## Usage
 
-### Создание посылки
+### Parcel creation
 
-#### Базовый пример
+#### Base example
 
 ```ruby
 client = Belpost::Client.new
@@ -139,7 +139,7 @@ response = client.create_parcel(parcel_data)
 puts "Трекинг код: #{response["data"]["parcel"]["s10code"]}"
 ```
 
-#### Использование ParcelBuilder
+#### Usage ParcelBuilder
 
 ```ruby
 client = Belpost::Client.new
@@ -200,12 +200,12 @@ response = client.create_parcel(parcel_data)
 puts "Трекинг код: #{response["data"]["parcel"]["s10code"]}"
 ```
 
-#### Создание международной посылки с таможенной декларацией
+#### Creating an international parcel with a customs declaration
 
 ```ruby
 client = Belpost::Client.new
 
-# Создание таможенной декларации
+# Creating a customs declaration
 customs_declaration = Belpost::Models::CustomsDeclaration.new
 customs_declaration.set_category("gift")
 customs_declaration.set_price("USD", 50)
@@ -227,7 +227,7 @@ customs_declaration.add_item(
   }
 )
 
-# Создание международной посылки
+# Creating an international parcel
 parcel_data = Belpost::Models::ParcelBuilder.new
   .with_type("package")
   .with_attachment_type("products")
@@ -268,7 +268,7 @@ response = client.create_parcel(parcel_data)
 puts "Трекинг код: #{response["data"]["parcel"]["s10code"]}"
 ```
 
-### Получение списка доступных стран
+### Getting a list of available countries
 
 ```ruby
 client = Belpost::Client.new
@@ -276,7 +276,7 @@ countries = client.fetch_available_countries
 puts countries
 ```
 
-### Получение данных для валидации почтового отправления
+### Obtaining data for postal item validation
 
 ```ruby
 client = Belpost::Client.new
@@ -284,7 +284,7 @@ validation_data = client.validate_postal_delivery("BY")
 puts validation_data
 ```
 
-### Получение кодов HS для таможенного декларирования
+### Obtaining HS codes for customs declaration
 
 ```ruby
 client = Belpost::Client.new
@@ -292,21 +292,21 @@ hs_codes = client.fetch_hs_codes
 puts hs_codes
 ```
 
-## Обработка ошибок
+## Error handling
 
-Клиент может выбрасывать следующие исключения:
+The client may throw the following exceptions:
 
-- `Belpost::ConfigurationError` - ошибка конфигурации
-- `Belpost::ValidationError` - ошибка валидации данных
-- `Belpost::ApiError` - базовая ошибка API
-- `Belpost::AuthenticationError` - ошибка аутентификации
-- `Belpost::InvalidRequestError` - ошибка запроса
-- `Belpost::RateLimitError` - превышен лимит запросов
-- `Belpost::ServerError` - ошибка сервера
-- `Belpost::NetworkError` - сетевая ошибка
-- `Belpost::TimeoutError` - таймаут запроса
+- `Belpost::ConfigurationError` - configuration error
+- `Belpost::ValidationError` - data validation error
+- `Belpost::ApiError` - basic API error
+- `Belpost::AuthenticationError` - authentication error
+- `Belpost::InvalidRequestError` - request error
+- `Belpost::RateLimitError` - request limit exceeded
+- `Belpost::ServerError` - server error
+- `Belpost::NetworkError` - network error
+- `Belpost::TimeoutError` - request timeout
 
-Пример обработки ошибок:
+Example of error handling:
 
 ```ruby
 begin
@@ -320,14 +320,13 @@ rescue Belpost::ApiError => e
   puts "Ошибка API: #{e.message}"
 end
 ```
+## Documentation
 
-## Документация
+Full documentation on the Belpochta API is available in the official documentation.
 
-Полная документация по API Белпочты доступна в официальной документации.
+## Development
 
-## Разработка
-
-После клонирования репозитория выполните `bin/setup` для установки зависимостей. Затем выполните `rake spec` для запуска тестов.
+After cloning the repository, run `bin/setup` to install dependencies. Then run `rake spec` to run tests.
 
 ## Contributing
 
