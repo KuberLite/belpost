@@ -81,14 +81,62 @@ module Belpost
     # @raise [Belpost::ApiError] If the API returns an error response.
     # @raise [Belpost::InvalidRequestError] If the address parameter is missing or has an incorrect format.
     def find_address_by_string(address)
-      validation_result = Validation::AddressSchema.new.call(address: address)
-      if validation_result.errors[:address].any? { |e| e.is_a?(String) && e.match?(/must be/) }
-        raise ValidationError, validation_result.errors[:address].first
-      end
+      raise ValidationError, "Address must be filled" if address.nil?
+      raise ValidationError, "Address must be a string" unless address.is_a?(String)
+      raise ValidationError, "Address must be filled" if address.empty?
 
-      formatted_address = validation_result.errors[:address].first
+      formatted_address = format_address(address)
       response = @api_service.get("/api/v1/business/geo-directory/search-address", { search: formatted_address })
       response.to_h
+    end
+
+    # Searches for postal codes by city, street, and building number.
+    #
+    # @param city [String] The city name (required)
+    # @param street [String] The street name (required)
+    # @param building [String] The building number (optional)
+    # @param limit [Integer] Maximum number of results (optional, default: 50, range: 1-200)
+    # @return [Array<Hash>] An array of found addresses with postcode, region, city, street and other information
+    # @raise [Belpost::ValidationError] If required parameters are missing or invalid
+    # @raise [Belpost::ApiError] If the API returns an error response
+    def search_postcode(city:, street:, building: nil, limit: 50)
+      raise ValidationError, "City must be filled" if city.nil?
+      raise ValidationError, "City must be a string" unless city.is_a?(String)
+      raise ValidationError, "City must be filled" if city.empty?
+      raise ValidationError, "Street must be filled" if street.nil?
+      raise ValidationError, "Street must be a string" unless street.is_a?(String)
+      raise ValidationError, "Street must be filled" if street.empty?
+      raise ValidationError, "Building must be a string" if building && !building.is_a?(String)
+      raise ValidationError, "Limit must be between 1 and 200" if limit < 1 || limit > 200
+
+      params = { city: city, street: street }
+      params[:building] = format_building_number(building) if building
+      params[:limit] = limit
+
+      response = @api_service.get("/api/v1/business/geo-directory/postcode", params)
+      response.to_h
+    end
+
+    private
+
+    def format_address(address)
+      address.gsub(/\s+/, " ")
+             .gsub(/\s*корпус\s*(\d+)\s*/i, '/\1')
+             .gsub(/\s*корп\s*(\d+)\s*/i, '/\1')
+             .gsub(/\s*кор\s*(\d+)\s*/i, '/\1')
+             .gsub(/\s*к\s*(\d+)\s*/i, '/\1')
+             .strip
+    end
+
+    def format_building_number(building)
+      return building unless building
+
+      building.gsub(/\s+/, " ")
+             .gsub(/\s*корпус\s*(\d+)\s*/i, '/\1')
+             .gsub(/\s*корп\s*(\d+)\s*/i, '/\1')
+             .gsub(/\s*кор\s*(\d+)\s*/i, '/\1')
+             .gsub(/\s*к\s*(\d+)\s*/i, '/\1')
+             .strip
     end
   end
 end

@@ -295,6 +295,19 @@ hs_codes = client.fetch_hs_codes
 puts hs_codes
 ```
 
+### Searching for postal codes
+
+```ruby
+client = Belpost::Client.new
+postcodes = client.search_postcode(
+  city: "Витебск",
+  street: "Ильинского",
+  building: "51/1",  # optional
+  limit: 50          # optional, default: 50, range: 1-200
+)
+puts postcodes
+```
+
 ## Error handling
 
 The client may throw the following exceptions:

@@ -276,4 +276,255 @@ RSpec.describe Belpost::Client do
       end
     end
   end
+
+  describe "#search_postcode" do
+    let(:client) { described_class.new }
+    let(:city) { "Витебск" }
+    let(:street) { "Ильинского" }
+    let(:building) { "51/1" }
+    let(:limit) { 50 }
+    let(:api_response) do
+      [{
+        "postcode" => "210001",
+        "region" => "Витебская",
+        "district" => "Витебский",
+        "city" => "Витебск",
+        "city_type" => "город",
+        "buildings" => "1, 1А, 3, 7, 13, 13А, 13к1",
+        "street" => "Ильинского",
+        "street_type" => "улица",
+        "short_address" => "210001, город Витебск, улица Ильинского",
+        "autocomplete_address" => "210001, город Витебск, улица Ильинского"
+      }]
+    end
+
+    before do
+      allow(api_service).to receive(:get).with(
+        "/api/v1/business/geo-directory/postcode",
+        { city: city, street: street, building: building, limit: limit }
+      ).and_return(Belpost::Models::ApiResponse.new(
+        data: api_response,
+        status_code: 200,
+        headers: {}
+      ))
+    end
+
+    it "sends request to API with all parameters" do
+      result = client.search_postcode(city: city, street: street, building: building, limit: limit)
+      expect(result).to eq(api_response)
+      expect(api_service).to have_received(:get).with(
+        "/api/v1/business/geo-directory/postcode",
+        { city: city, street: street, building: building, limit: limit }
+      )
+    end
+
+    it "sends request without optional parameters" do
+      allow(api_service).to receive(:get).with(
+        "/api/v1/business/geo-directory/postcode",
+        { city: city, street: street, limit: 50 }
+      ).and_return(Belpost::Models::ApiResponse.new(
+        data: api_response,
+        status_code: 200,
+        headers: {}
+      ))
+
+      result = client.search_postcode(city: city, street: street)
+      expect(result).to eq(api_response)
+      expect(api_service).to have_received(:get).with(
+        "/api/v1/business/geo-directory/postcode",
+        { city: city, street: street, limit: 50 }
+      )
+    end
+
+    context "when no addresses are found" do
+      before do
+        allow(api_service).to receive(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, limit: 50 }
+        ).and_return(Belpost::Models::ApiResponse.new(
+          data: [],
+          status_code: 200,
+          headers: {}
+        ))
+      end
+
+      it "returns empty array" do
+        result = client.search_postcode(city: city, street: street)
+        expect(result).to eq([])
+      end
+    end
+
+    context "when building number contains 'корпус'" do
+      let(:formatted_building) { "3Е/4" }
+
+      before do
+        allow(api_service).to receive(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, building: formatted_building, limit: limit }
+        ).and_return(Belpost::Models::ApiResponse.new(
+          data: api_response,
+          status_code: 200,
+          headers: {}
+        ))
+      end
+
+      it "formats building number with 'корпус'" do
+        result = client.search_postcode(city: city, street: street, building: "3Е корпус 4")
+        expect(result).to eq(api_response)
+        expect(api_service).to have_received(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, building: formatted_building, limit: limit }
+        )
+      end
+
+      it "formats building number with 'корп'" do
+        result = client.search_postcode(city: city, street: street, building: "3Е корп 4")
+        expect(result).to eq(api_response)
+        expect(api_service).to have_received(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, building: formatted_building, limit: limit }
+        )
+      end
+
+      it "formats building number with 'кор'" do
+        result = client.search_postcode(city: city, street: street, building: "3Е кор 4")
+        expect(result).to eq(api_response)
+        expect(api_service).to have_received(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, building: formatted_building, limit: limit }
+        )
+      end
+
+      it "formats building number with 'к'" do
+        result = client.search_postcode(city: city, street: street, building: "3Е к 4")
+        expect(result).to eq(api_response)
+        expect(api_service).to have_received(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, building: formatted_building, limit: limit }
+        )
+      end
+
+      it "formats building number with different spacing" do
+        result = client.search_postcode(city: city, street: street, building: "3Е  корпус  4")
+        expect(result).to eq(api_response)
+        expect(api_service).to have_received(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, building: formatted_building, limit: limit }
+        )
+      end
+
+      it "formats building number with different case" do
+        result = client.search_postcode(city: city, street: street, building: "3Е КОРПУС 4")
+        expect(result).to eq(api_response)
+        expect(api_service).to have_received(:get).with(
+          "/api/v1/business/geo-directory/postcode",
+          { city: city, street: street, building: formatted_building, limit: limit }
+        )
+      end
+    end
+
+    context "when API returns 422 error" do
+      before do
+        allow(api_service).to receive(:get).and_raise(
+          Belpost::InvalidRequestError.new(
+            "The given data was invalid.",
+            status_code: 422,
+            response_body: {
+              "message" => "The given data was invalid.",
+              "errors" => {
+                "search" => ["Поле city имеет ошибочный формат."]
+              }
+            }
+          )
+        )
+      end
+
+      it "raises InvalidRequestError with error details" do
+        expect { client.search_postcode(city: city, street: street) }.to raise_error(
+          Belpost::InvalidRequestError,
+          "The given data was invalid."
+        )
+      end
+    end
+
+    context "when parameters are invalid" do
+      it "raises ValidationError for empty city" do
+        expect { client.search_postcode(city: "", street: street) }.to raise_error(
+          Belpost::ValidationError,
+          /City must be filled/
+        )
+      end
+
+      it "raises ValidationError for nil city" do
+        expect { client.search_postcode(city: nil, street: street) }.to raise_error(
+          Belpost::ValidationError,
+          /City must be filled/
+        )
+      end
+
+      it "raises ValidationError for non-string city" do
+        expect { client.search_postcode(city: 123, street: street) }.to raise_error(
+          Belpost::ValidationError,
+          /City must be a string/
+        )
+      end
+
+      it "raises ValidationError for empty street" do
+        expect { client.search_postcode(city: city, street: "") }.to raise_error(
+          Belpost::ValidationError,
+          /Street must be filled/
+        )
+      end
+
+      it "raises ValidationError for nil street" do
+        expect { client.search_postcode(city: city, street: nil) }.to raise_error(
+          Belpost::ValidationError,
+          /Street must be filled/
+        )
+      end
+
+      it "raises ValidationError for non-string street" do
+        expect { client.search_postcode(city: city, street: 123) }.to raise_error(
+          Belpost::ValidationError,
+          /Street must be a string/
+        )
+      end
+
+      it "raises ValidationError for non-string building" do
+        expect { client.search_postcode(city: city, street: street, building: 123) }.to raise_error(
+          Belpost::ValidationError,
+          /Building must be a string/
+        )
+      end
+
+      it "raises ValidationError for limit less than 1" do
+        expect { client.search_postcode(city: city, street: street, limit: 0) }.to raise_error(
+          Belpost::ValidationError,
+          /Limit must be between 1 and 200/
+        )
+      end
+
+      it "raises ValidationError for limit greater than 200" do
+        expect { client.search_postcode(city: city, street: street, limit: 201) }.to raise_error(
+          Belpost::ValidationError,
+          /Limit must be between 1 and 200/
+        )
+      end
+    end
+
+    context "when API returns error" do
+      before do
+        allow(api_service).to receive(:get).and_raise(
+          Belpost::ApiError.new("API Error")
+        )
+      end
+
+      it "raises ApiError" do
+        expect { client.search_postcode(city: city, street: street) }.to raise_error(
+          Belpost::ApiError,
+          "API Error"
+        )
+      end
+    end
+  end
 end 

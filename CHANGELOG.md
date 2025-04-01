@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.0] - 2025-04-01
+### Added
+- Added postal code search functionality via `search_postcode` method
+- Support for searching postal codes by city, street, and building number
+- Added comprehensive tests for the new postal code search endpoint
+
+## [0.6.0] - 2025-04-01
+### Added
+- Added search addresses search functionality via `find_address_by_string` method
+
 ## [0.5.1] - 2025-04-01
 ### Fixed
 - Improved error handling for invalid timeout environment variable
