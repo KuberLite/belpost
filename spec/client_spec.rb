@@ -211,4 +211,69 @@ RSpec.describe Belpost::Client do
       expect(result).to eq(response_data)
     end
   end
+
+  describe "#find_address_by_string" do
+    let(:client) { described_class.new }
+    let(:address) { "город Минск улица Автодоровская 3Е корпус 4" }
+    let(:formatted_address) { "город Минск улица Автодоровская 3Е/4" }
+    let(:api_response) { { "data" => [{ "address" => "test" }] } }
+
+    before do
+      allow(api_service).to receive(:get).with(
+        "/api/v1/business/geo-directory/search-address",
+        { search: formatted_address }
+      ).and_return(Belpost::Models::ApiResponse.new(
+        data: api_response,
+        status_code: 200,
+        headers: {}
+      ))
+    end
+
+    it "formats address and sends request to API" do
+      result = client.find_address_by_string(address)
+      expect(result).to eq(api_response)
+      expect(api_service).to have_received(:get).with(
+        "/api/v1/business/geo-directory/search-address",
+        { search: formatted_address }
+      )
+    end
+
+    context "when address is invalid" do
+      it "raises ValidationError for empty address" do
+        expect { client.find_address_by_string("") }.to raise_error(
+          Belpost::ValidationError,
+          /must be filled/
+        )
+      end
+
+      it "raises ValidationError for nil address" do
+        expect { client.find_address_by_string(nil) }.to raise_error(
+          Belpost::ValidationError,
+          /must be filled/
+        )
+      end
+
+      it "raises ValidationError for non-string address" do
+        expect { client.find_address_by_string(123) }.to raise_error(
+          Belpost::ValidationError,
+          /must be a string/
+        )
+      end
+    end
+
+    context "when API returns error" do
+      before do
+        allow(api_service).to receive(:get).and_raise(
+          Belpost::ApiError.new("API Error")
+        )
+      end
+
+      it "raises ApiError" do
+        expect { client.find_address_by_string(address) }.to raise_error(
+          Belpost::ApiError,
+          "API Error"
+        )
+      end
+    end
+  end
 end 

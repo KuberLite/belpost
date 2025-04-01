@@ -3,6 +3,7 @@
 require_relative "api_service"
 require_relative "models/parcel"
 require_relative "models/api_response"
+require_relative "validations/address_schema"
 
 module Belpost
   # Main client class for interacting with the BelPost API.
@@ -80,7 +81,13 @@ module Belpost
     # @raise [Belpost::ApiError] If the API returns an error response.
     # @raise [Belpost::InvalidRequestError] If the address parameter is missing or has an incorrect format.
     def find_address_by_string(address)
-      response = @api_service.get("/api/v1/business/geo-directory/search-address", { search: address })
+      validation_result = Validation::AddressSchema.new.call(address: address)
+      if validation_result.errors[:address].any? { |e| e.is_a?(String) && e.match?(/must be/) }
+        raise ValidationError, validation_result.errors[:address].first
+      end
+
+      formatted_address = validation_result.errors[:address].first
+      response = @api_service.get("/api/v1/business/geo-directory/search-address", { search: formatted_address })
       response.to_h
     end
   end
