@@ -23,10 +23,12 @@ module Belpost
     # Performs a GET request to the specified path.
     #
     # @param path [String] The API endpoint path.
+    # @param params [Hash] The query parameters (default: {}).
     # @return [Models::ApiResponse] The parsed JSON response from the API.
-    def get(path)
+    def get(path, params = {})
       Retry.with_retry do
         uri = URI("#{@base_url}#{path}")
+        uri.query = URI.encode_www_form(params) unless params.empty?
         request = Net::HTTP::Get.new(uri)
         add_headers(request)
 

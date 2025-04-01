@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.5.0] - 2025-04-02
+### Added
+- Added address search functionality via `find_address_by_string` method
+- Support for query parameters in GET requests
+
 ## [0.4.0] - 2025-04-01
 ### Added
 - Added configuration via environment variables

@@ -67,5 +67,21 @@ module Belpost
       response = @api_service.get("/api/v1/business/postal-deliveries/countries")
       response.to_h
     end
+
+    # Allows you to find an address by a string.
+    #
+    # Accepts a string with an address in any form and returns found addresses (up to 50 records).
+    # Building numbers should be specified without spaces: "building number""letter""building".
+    # The letter should be uppercase, and "building" (or "корп", "кор", "к") should be replaced with "/".
+    # Example: "город Минск улица Автодоровская 3Е корпус 4" should be transformed to "город Минск улица Автодоровская 3Е/4".
+    #
+    # @param address [String] The address string to search for.
+    # @return [Array<Hash>] An array of found addresses with postcode, region, city, street and other information.
+    # @raise [Belpost::ApiError] If the API returns an error response.
+    # @raise [Belpost::InvalidRequestError] If the address parameter is missing or has an incorrect format.
+    def find_address_by_string(address)
+      response = @api_service.get("/api/v1/business/geo-directory/search-address", { search: address })
+      response.to_h
+    end
   end
 end
