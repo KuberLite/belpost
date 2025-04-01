@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build + Publish
+    name: Build + Tests + Publish
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,7 +31,7 @@ jobs:
       run: |
         bundle install
         bundle exec rspec
-
+        
     - name: Build and Publish Gem
       uses: dawidd6/action-publish-gem@v1
       with:
