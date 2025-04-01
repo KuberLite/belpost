@@ -5,13 +5,11 @@ require "belpost"
 
 RSpec.describe Belpost do
   before(:all) do
-    # Убедимся, что тесты не зависят от реальных переменных окружения
     @original_api_url = ENV["BELPOST_API_URL"]
     ENV["BELPOST_API_URL"] = "https://api.belpost.by"
   end
 
   after(:all) do
-    # Восстановим оригинальное значение
     ENV["BELPOST_API_URL"] = @original_api_url
   end
 
@@ -40,19 +38,16 @@ RSpec.describe Belpost do
 
   describe ".reset" do
     around do |example|
-      # Сохраняем текущие значения
       old_api_url = ENV["BELPOST_API_URL"]
       old_jwt_token = ENV["BELPOST_JWT_TOKEN"]
       old_timeout = ENV["BELPOST_TIMEOUT"]
       
-      # Устанавливаем значения для теста
       ENV["BELPOST_API_URL"] = "https://api.belpost.by"
       ENV.delete("BELPOST_JWT_TOKEN")
       ENV.delete("BELPOST_TIMEOUT")
       
       example.run
       
-      # Восстанавливаем переменные среды
       ENV["BELPOST_API_URL"] = old_api_url
       ENV["BELPOST_JWT_TOKEN"] = old_jwt_token
       ENV["BELPOST_TIMEOUT"] = old_timeout

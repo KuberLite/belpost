@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe Belpost::ApiService do
-  # Устанавливаем переменную окружения для базового URL
   before(:all) do
     @original_api_url = ENV["BELPOST_API_URL"]
     ENV["BELPOST_API_URL"] = "https://api.belpost.by"
@@ -17,10 +16,8 @@ RSpec.describe Belpost::ApiService do
   let(:logger) { instance_double(Logger, info: nil, debug: nil, error: nil) }
   let(:service) { described_class.new(base_url: base_url, jwt_token: jwt_token, timeout: timeout, logger: logger) }
 
-  # Мок для HTTP клиента
   let(:http_client) { instance_double(Net::HTTP) }
   
-  # Настраиваем базовые моки
   before do
     allow(Net::HTTP).to receive(:new).and_return(http_client)
     allow(http_client).to receive(:use_ssl=)
@@ -31,7 +28,6 @@ RSpec.describe Belpost::ApiService do
     let(:endpoint) { "/api/v1/test" }
     let(:uri) { URI("#{base_url}#{endpoint}") }
     
-    # Мок для успешного ответа
     let(:success_response) do
       response = double("HTTP Response")
       allow(response).to receive(:code).and_return("200")
@@ -47,7 +43,6 @@ RSpec.describe Belpost::ApiService do
     end
 
     it "sets the correct headers" do
-      # Проверяем, что заголовки установлены правильно
       expect(http_client).to receive(:request) do |req|
         expect(req["Authorization"]).to eq("Bearer #{jwt_token}")
         expect(req["Accept"]).to eq("application/json")
@@ -114,7 +109,6 @@ RSpec.describe Belpost::ApiService do
     let(:uri) { URI("#{base_url}#{endpoint}") }
     let(:data) { { test: "data" } }
     
-    # Мок для успешного ответа
     let(:success_response) do
       response = double("HTTP Response")
       allow(response).to receive(:code).and_return("200")
@@ -186,7 +180,6 @@ RSpec.describe Belpost::ApiService do
     let(:uri) { URI("#{base_url}#{endpoint}") }
     let(:data) { { test: "data" } }
     
-    # Мок для успешного ответа
     let(:success_response) do
       response = double("HTTP Response")
       allow(response).to receive(:code).and_return("200")
@@ -233,7 +226,6 @@ RSpec.describe Belpost::ApiService do
     let(:endpoint) { "/api/v1/test" }
     let(:uri) { URI("#{base_url}#{endpoint}") }
     
-    # Мок для успешного ответа
     let(:success_response) do
       response = double("HTTP Response")
       allow(response).to receive(:code).and_return("200")

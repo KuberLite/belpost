@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.5.0] - 2025-04-02
+## [0.5.1] - 2025-04-01
+### Fixed
+- Improved error handling for invalid timeout environment variable
+- Added fallback for BELPOST_API_URL environment variable to make tests more robust
+- Fixed Configuration class by implementing `validate!` and `to_h` methods
+
+## [0.5.0] - 2025-04-01
 ### Added
 - Added address search functionality via `find_address_by_string` method
 - Support for query parameters in GET requests

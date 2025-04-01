@@ -1,195 +1,146 @@
 # frozen_string_literal: true
 
+require "spec_helper"
+
 RSpec.describe Belpost::Configuration do
+  after do
+    ENV.delete("BELPOST_API_URL")
+    ENV.delete("BELPOST_JWT_TOKEN")
+    ENV.delete("BELPOST_TIMEOUT")
+  end
+
   describe "default values" do
-    let(:config) { described_class.new }
-
-    around do |example|
-      # Сохраняем текущие значения
-      old_api_url = ENV["BELPOST_API_URL"]
-      old_jwt_token = ENV["BELPOST_JWT_TOKEN"]
-      old_timeout = ENV["BELPOST_TIMEOUT"]
-      
-      # Устанавливаем значения для теста
-      ENV["BELPOST_API_URL"] = "https://api.belpost.by" # Обязательное значение
-      ENV.delete("BELPOST_JWT_TOKEN")
-      ENV.delete("BELPOST_TIMEOUT")
-      
-      example.run
-      
-      # Восстанавливаем переменные среды
-      ENV["BELPOST_API_URL"] = old_api_url
-      ENV["BELPOST_JWT_TOKEN"] = old_jwt_token
-      ENV["BELPOST_TIMEOUT"] = old_timeout
+    before do
+      ENV["BELPOST_API_URL"] = "https://api.belpost.by"
+      ENV["BELPOST_JWT_TOKEN"] = "test-token-from-env"
+      ENV["BELPOST_TIMEOUT"] = "30"
     end
 
-    it "has required value for base_url" do
+    it "loads values from environment variables" do
+      config = described_class.new
       expect(config.base_url).to eq("https://api.belpost.by")
+      expect(config.jwt_token).to eq("test-token-from-env")
+      expect(config.timeout).to eq(30)
     end
 
-    it "has default value for timeout" do
-      expect(config.timeout).to eq(10)
-    end
+    it "can be overridden with explicit values" do
+      config = described_class.new
+      config.base_url = "https://test-api.belpost.by"
+      config.jwt_token = "override-token"
+      config.timeout = 15
 
-    it "has nil value for jwt_token" do
-      expect(config.jwt_token).to be_nil
+      expect(config.base_url).to eq("https://test-api.belpost.by")
+      expect(config.jwt_token).to eq("override-token")
+      expect(config.timeout).to eq(15)
     end
   end
 
-  describe "environment variables" do
-    context "when environment variables are set" do
-      around do |example|
-        # Сохраняем текущие значения
-        old_api_url = ENV["BELPOST_API_URL"]
-        old_jwt_token = ENV["BELPOST_JWT_TOKEN"]
-        old_timeout = ENV["BELPOST_TIMEOUT"]
-        
-        # Устанавливаем тестовые значения
-        ENV["BELPOST_API_URL"] = "https://test-api.belpost.by"
+  describe "environment fallbacks" do
+    it "falls back to defaults when environment variables are not set" do
+      config = described_class.new
+      expect(config.base_url).to eq("https://api.belpost.by")
+      expect(config.jwt_token).to be_nil
+      expect(config.timeout).to eq(10)
+    end
+
+    it "falls back to default timeout when invalid value is provided" do
+      ENV["BELPOST_TIMEOUT"] = "invalid"
+      config = described_class.new
+      expect(config.timeout).to eq(10)
+    end
+  end
+
+  describe "#validate!" do
+    context "when all required configuration is present" do
+      before do
+        ENV["BELPOST_API_URL"] = "https://api.belpost.by"
         ENV["BELPOST_JWT_TOKEN"] = "test-token"
+      end
+
+      it "does not raise an error" do
+        config = described_class.new
+        expect { config.validate! }.not_to raise_error
+      end
+    end
+
+    context "when jwt_token is missing" do
+      before do
+        ENV["BELPOST_API_URL"] = "https://api.belpost.by"
+      end
+
+      it "raises a ConfigurationError" do
+        config = described_class.new
+        expect { config.validate! }.to raise_error(Belpost::ConfigurationError, "JWT token is required")
+      end
+    end
+
+    context "when base_url is missing" do
+      before do
+        ENV.delete("BELPOST_API_URL")
+        ENV["BELPOST_JWT_TOKEN"] = "test-token"
+      end
+
+      it "raises a ConfigurationError" do
+        config = described_class.new
+        config.base_url = nil
+        expect { config.validate! }.to raise_error(Belpost::ConfigurationError, "Base URL is required")
+      end
+    end
+  end
+
+  describe "#to_h" do
+    before do
+      ENV["BELPOST_API_URL"] = "https://api.belpost.by"
+      ENV["BELPOST_JWT_TOKEN"] = "test-token-from-env"
+      ENV["BELPOST_TIMEOUT"] = "30"
+    end
+
+    it "returns a hash representation of the configuration" do
+      config = described_class.new
+      expect(config.to_h).to eq({
+        base_url: "https://api.belpost.by",
+        jwt_token: "test-token-from-env",
+        timeout: 30
+      })
+    end
+
+    it "includes explicit overrides in the hash" do
+      config = described_class.new
+      config.base_url = "https://test-api.belpost.by"
+      config.jwt_token = "override-token"
+      config.timeout = 15
+
+      expect(config.to_h).to eq({
+        base_url: "https://test-api.belpost.by",
+        jwt_token: "override-token",
+        timeout: 15
+      })
+    end
+  end
+
+  describe "#initialize_from_env" do
+    context "when all environment variables are set" do
+      before do
+        ENV["BELPOST_API_URL"] = "https://api.belpost.by"
+        ENV["BELPOST_JWT_TOKEN"] = "test-token-from-env"
         ENV["BELPOST_TIMEOUT"] = "30"
-        
-        example.run
-        
-        # Восстанавливаем переменные среды
-        ENV["BELPOST_API_URL"] = old_api_url
-        ENV["BELPOST_JWT_TOKEN"] = old_jwt_token
-        ENV["BELPOST_TIMEOUT"] = old_timeout
       end
 
-      it "reads JWT token from environment" do
+      it "initializes values from environment variables" do
         config = described_class.new
-        expect(config.jwt_token).to eq("test-token")
-      end
-
-      it "reads base URL from environment" do
-        config = described_class.new
-        expect(config.base_url).to eq("https://test-api.belpost.by")
-      end
-
-      it "reads timeout from environment and converts to integer" do
-        config = described_class.new
+        expect(config.base_url).to eq("https://api.belpost.by")
+        expect(config.jwt_token).to eq("test-token-from-env")
         expect(config.timeout).to eq(30)
       end
     end
 
-    context "when environment variables are not set" do
-      around do |example|
-        # Сохраняем текущие значения
-        old_api_url = ENV["BELPOST_API_URL"]
-        old_jwt_token = ENV["BELPOST_JWT_TOKEN"]
-        old_timeout = ENV["BELPOST_TIMEOUT"]
-        
-        # Устанавливаем необходимый минимум
-        ENV["BELPOST_API_URL"] = "https://api.belpost.by" # Обязательное значение
-        ENV.delete("BELPOST_JWT_TOKEN")
-        ENV.delete("BELPOST_TIMEOUT")
-        
-        example.run
-        
-        # Восстанавливаем переменные среды
-        ENV["BELPOST_API_URL"] = old_api_url
-        ENV["BELPOST_JWT_TOKEN"] = old_jwt_token
-        ENV["BELPOST_TIMEOUT"] = old_timeout
-      end
-
-      it "uses default values where applicable" do
+    context "when environment variables are missing" do
+      it "uses default values" do
         config = described_class.new
         expect(config.base_url).to eq("https://api.belpost.by")
         expect(config.jwt_token).to be_nil
         expect(config.timeout).to eq(10)
       end
-      
-      it "raises KeyError when BELPOST_API_URL is missing" do
-        ENV.delete("BELPOST_API_URL")
-        expect { described_class.new }.to raise_error(KeyError, /BELPOST_API_URL/)
-      end
-    end
-  end
-
-  describe "configuration via setter methods" do
-    let(:config) do
-      # Установим минимальное значение для создания объекта
-      old_api_url = ENV["BELPOST_API_URL"]
-      begin
-        ENV["BELPOST_API_URL"] = "https://api.belpost.by"
-        described_class.new
-      ensure
-        ENV["BELPOST_API_URL"] = old_api_url
-      end
-    end
-
-    it "allows setting jwt_token" do
-      config.jwt_token = "new-token"
-      expect(config.jwt_token).to eq("new-token")
-    end
-
-    it "allows setting base_url" do
-      config.base_url = "https://new-api.belpost.by"
-      expect(config.base_url).to eq("https://new-api.belpost.by")
-    end
-
-    it "allows setting timeout" do
-      config.timeout = 20
-      expect(config.timeout).to eq(20)
-    end
-  end
-
-  describe "using configure block" do
-    around do |example|
-      old_api_url = ENV["BELPOST_API_URL"]
-      ENV["BELPOST_API_URL"] = "https://api.belpost.by"
-      example.run
-      ENV["BELPOST_API_URL"] = old_api_url
-    end
-    
-    it "configures via block" do
-      config = nil
-      Belpost.configure do |c|
-        c.jwt_token = "token-from-block"
-        c.base_url = "https://block-api.belpost.by"
-        c.timeout = 15
-        config = c
-      end
-
-      expect(config.jwt_token).to eq("token-from-block")
-      expect(config.base_url).to eq("https://block-api.belpost.by")
-      expect(config.timeout).to eq(15)
-    end
-  end
-
-  describe ".reset" do
-    around do |example|
-      # Сохраняем текущие значения
-      old_api_url = ENV["BELPOST_API_URL"]
-      old_jwt_token = ENV["BELPOST_JWT_TOKEN"]
-      old_timeout = ENV["BELPOST_TIMEOUT"]
-      
-      # Устанавливаем значения для теста
-      ENV["BELPOST_API_URL"] = "https://api.belpost.by" # Обязательное значение
-      ENV.delete("BELPOST_JWT_TOKEN")
-      ENV.delete("BELPOST_TIMEOUT")
-      
-      example.run
-      
-      # Восстанавливаем переменные среды
-      ENV["BELPOST_API_URL"] = old_api_url
-      ENV["BELPOST_JWT_TOKEN"] = old_jwt_token
-      ENV["BELPOST_TIMEOUT"] = old_timeout
-    end
-
-    it "resets configuration to environment values" do
-      config = Belpost.configuration
-      config.jwt_token = "custom-token"
-      config.base_url = "https://custom-api.belpost.by"
-      config.timeout = 25
-
-      Belpost.reset
-      new_config = Belpost.configuration
-
-      expect(new_config.jwt_token).to be_nil
-      expect(new_config.base_url).to eq("https://api.belpost.by")
-      expect(new_config.timeout).to eq(10)
     end
   end
 end 
