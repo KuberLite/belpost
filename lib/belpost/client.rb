@@ -2,8 +2,10 @@
 
 require_relative "api_service"
 require_relative "models/parcel"
+require_relative "models/batch"
 require_relative "models/api_response"
 require_relative "validations/address_schema"
+require_relative "validations/batch_schema"
 
 module Belpost
   # Main client class for interacting with the BelPost API.
@@ -21,6 +23,23 @@ module Belpost
         timeout: @config.timeout,
         logger: logger
       )
+    end
+
+    # Creates a new batch mailing by sending a POST request to the API.
+    #
+    # @param batch_data [Hash] The data for the batch mailing.
+    # @return [Hash] The parsed JSON response from the API.
+    # @raise [Belpost::InvalidRequestError] If the request data is invalid.
+    # @raise [Belpost::ApiError] If the API returns an error response.
+    def create_batch(batch_data)
+      validation_result = Validation::BatchSchema.new.call(batch_data)
+      unless validation_result.success?
+        raise ValidationError, "Invalid batch data: #{validation_result.errors.to_h}"
+      end
+
+      batch = Models::Batch.new(batch_data)
+      response = @api_service.post("/api/v1/business/batch-mailing/list", batch.to_h)
+      response.to_h
     end
 
     # Creates a new postal parcel by sending a POST request to the API.

@@ -151,7 +151,6 @@ module Belpost
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true if uri.scheme == "https"
       http.read_timeout = @timeout
-
       begin
         response = http.request(request)
         handle_response(response)
@@ -191,7 +190,7 @@ module Belpost
 
     def handle_response(response)
       case response.code
-      when "200"
+      when "200", "201"
         response
       when "401", "403"
         raise AuthenticationError.new(

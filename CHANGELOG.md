@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0] - 2025-04-01
+### Added
+- Added batch mailing functionality via `create_batch` method
+- Support for creating batch mailings with various delivery types
+- Added comprehensive validation for batch mailing data
+- Added new models and schemas for batch mailing
+- Added tests for batch mailing functionality
+
 ## [0.7.0] - 2025-04-01
 ### Added
 - Added postal code search functionality via `search_postcode` method
