@@ -135,7 +135,7 @@ RSpec.describe Belpost::Client do
     it "creates a parcel using the API service" do
       client.create_parcel(parcel_data)
       expect(api_service).to have_received(:post).with(
-        "/api/v1/business/postal-deliveries",
+        Belpost::ApiPaths::POSTAL_DELIVERIES,
         parcel_data
       )
     end
@@ -157,7 +157,7 @@ RSpec.describe Belpost::Client do
 
     it "fetches HS codes using the API service" do
       client.fetch_hs_codes
-      expect(api_service).to have_received(:get).with("/api/v1/business/postal-deliveries/hs-codes/list")
+      expect(api_service).to have_received(:get).with(Belpost::ApiPaths::POSTAL_DELIVERIES_HS_CODES)
     end
 
     it "returns the API response data" do
@@ -178,12 +178,12 @@ RSpec.describe Belpost::Client do
 
     it "fetches validation data using the API service" do
       client.validate_postal_delivery(country_code)
-      expect(api_service).to have_received(:get).with("/api/v1/business/postal-deliveries/validation/BY")
+      expect(api_service).to have_received(:get).with("#{Belpost::ApiPaths::POSTAL_DELIVERIES_VALIDATION}/BY")
     end
 
     it "converts country code to uppercase" do
       client.validate_postal_delivery("by")
-      expect(api_service).to have_received(:get).with("/api/v1/business/postal-deliveries/validation/BY")
+      expect(api_service).to have_received(:get).with("#{Belpost::ApiPaths::POSTAL_DELIVERIES_VALIDATION}/BY")
     end
 
     it "returns the API response data" do
@@ -203,7 +203,7 @@ RSpec.describe Belpost::Client do
 
     it "fetches available countries using the API service" do
       client.fetch_available_countries
-      expect(api_service).to have_received(:get).with("/api/v1/business/postal-deliveries/countries")
+      expect(api_service).to have_received(:get).with(Belpost::ApiPaths::POSTAL_DELIVERIES_COUNTRIES)
     end
 
     it "returns the API response data" do
@@ -220,7 +220,7 @@ RSpec.describe Belpost::Client do
 
     before do
       allow(api_service).to receive(:get).with(
-        "/api/v1/business/geo-directory/search-address",
+        Belpost::ApiPaths::GEO_DIRECTORY_SEARCH_ADDRESS,
         { search: formatted_address }
       ).and_return(Belpost::Models::ApiResponse.new(
         data: api_response,
@@ -233,7 +233,7 @@ RSpec.describe Belpost::Client do
       result = client.find_address_by_string(address)
       expect(result).to eq(api_response)
       expect(api_service).to have_received(:get).with(
-        "/api/v1/business/geo-directory/search-address",
+        Belpost::ApiPaths::GEO_DIRECTORY_SEARCH_ADDRESS,
         { search: formatted_address }
       )
     end
@@ -300,7 +300,7 @@ RSpec.describe Belpost::Client do
 
     before do
       allow(api_service).to receive(:get).with(
-        "/api/v1/business/geo-directory/postcode",
+        Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
         { city: city, street: street, building: building, limit: limit }
       ).and_return(Belpost::Models::ApiResponse.new(
         data: api_response,
@@ -313,14 +313,14 @@ RSpec.describe Belpost::Client do
       result = client.search_postcode(city: city, street: street, building: building, limit: limit)
       expect(result).to eq(api_response)
       expect(api_service).to have_received(:get).with(
-        "/api/v1/business/geo-directory/postcode",
+        Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
         { city: city, street: street, building: building, limit: limit }
       )
     end
 
     it "sends request without optional parameters" do
       allow(api_service).to receive(:get).with(
-        "/api/v1/business/geo-directory/postcode",
+        Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
         { city: city, street: street, limit: 50 }
       ).and_return(Belpost::Models::ApiResponse.new(
         data: api_response,
@@ -331,7 +331,7 @@ RSpec.describe Belpost::Client do
       result = client.search_postcode(city: city, street: street)
       expect(result).to eq(api_response)
       expect(api_service).to have_received(:get).with(
-        "/api/v1/business/geo-directory/postcode",
+        Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
         { city: city, street: street, limit: 50 }
       )
     end
@@ -339,7 +339,7 @@ RSpec.describe Belpost::Client do
     context "when no addresses are found" do
       before do
         allow(api_service).to receive(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, limit: 50 }
         ).and_return(Belpost::Models::ApiResponse.new(
           data: [],
@@ -359,7 +359,7 @@ RSpec.describe Belpost::Client do
 
       before do
         allow(api_service).to receive(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, building: formatted_building, limit: limit }
         ).and_return(Belpost::Models::ApiResponse.new(
           data: api_response,
@@ -372,7 +372,7 @@ RSpec.describe Belpost::Client do
         result = client.search_postcode(city: city, street: street, building: "3Е корпус 4")
         expect(result).to eq(api_response)
         expect(api_service).to have_received(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, building: formatted_building, limit: limit }
         )
       end
@@ -381,7 +381,7 @@ RSpec.describe Belpost::Client do
         result = client.search_postcode(city: city, street: street, building: "3Е корп 4")
         expect(result).to eq(api_response)
         expect(api_service).to have_received(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, building: formatted_building, limit: limit }
         )
       end
@@ -390,7 +390,7 @@ RSpec.describe Belpost::Client do
         result = client.search_postcode(city: city, street: street, building: "3Е кор 4")
         expect(result).to eq(api_response)
         expect(api_service).to have_received(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, building: formatted_building, limit: limit }
         )
       end
@@ -399,7 +399,7 @@ RSpec.describe Belpost::Client do
         result = client.search_postcode(city: city, street: street, building: "3Е к 4")
         expect(result).to eq(api_response)
         expect(api_service).to have_received(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, building: formatted_building, limit: limit }
         )
       end
@@ -408,7 +408,7 @@ RSpec.describe Belpost::Client do
         result = client.search_postcode(city: city, street: street, building: "3Е  корпус  4")
         expect(result).to eq(api_response)
         expect(api_service).to have_received(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, building: formatted_building, limit: limit }
         )
       end
@@ -417,7 +417,7 @@ RSpec.describe Belpost::Client do
         result = client.search_postcode(city: city, street: street, building: "3Е КОРПУС 4")
         expect(result).to eq(api_response)
         expect(api_service).to have_received(:get).with(
-          "/api/v1/business/geo-directory/postcode",
+          Belpost::ApiPaths::GEO_DIRECTORY_POSTCODE,
           { city: city, street: street, building: formatted_building, limit: limit }
         )
       end
@@ -524,6 +524,52 @@ RSpec.describe Belpost::Client do
           Belpost::ApiError,
           "API Error"
         )
+      end
+    end
+  end
+
+  describe "#find_batch_by_id" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:batch_id) { 123 }
+    let(:response_data) do
+      {
+        "id" => batch_id,
+        "name" => "Test Batch",
+        "status" => "uncommitted",
+        "postal_delivery_type" => "ordered_small_package",
+        "direction" => "internal",
+        "payment_type" => "cash",
+        "negotiated_rate" => true
+      }
+    end
+    let(:api_response) { instance_double(Belpost::Models::ApiResponse, to_h: response_data) }
+
+    before do
+      allow(api_service).to receive(:get).and_return(api_response)
+    end
+
+    it "fetches batch data using the API service" do
+      client.find_batch_by_id(batch_id)
+      expect(api_service).to have_received(:get).with("#{Belpost::ApiPaths::BATCH_MAILING_LIST}/#{batch_id}")
+    end
+
+    it "returns the API response data" do
+      result = client.find_batch_by_id(batch_id)
+      expect(result).to eq(response_data)
+    end
+
+    context "with invalid input" do
+      it "raises ValidationError when id is nil" do
+        expect { client.find_batch_by_id(nil) }.to raise_error(Belpost::ValidationError, "ID must be provided")
+      end
+
+      it "raises ValidationError when id is not an integer" do
+        expect { client.find_batch_by_id("123") }.to raise_error(Belpost::ValidationError, "ID must be a positive integer")
+      end
+
+      it "raises ValidationError when id is not positive" do
+        expect { client.find_batch_by_id(0) }.to raise_error(Belpost::ValidationError, "ID must be a positive integer")
+        expect { client.find_batch_by_id(-1) }.to raise_error(Belpost::ValidationError, "ID must be a positive integer")
       end
     end
   end

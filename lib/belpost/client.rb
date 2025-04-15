@@ -6,6 +6,7 @@ require_relative "models/batch"
 require_relative "models/api_response"
 require_relative "validations/address_schema"
 require_relative "validations/batch_schema"
+require_relative "api_paths"
 
 module Belpost
   # Main client class for interacting with the BelPost API.
@@ -38,7 +39,7 @@ module Belpost
       end
 
       batch = Models::Batch.new(batch_data)
-      response = @api_service.post("/api/v1/business/batch-mailing/list", batch.to_h)
+      response = @api_service.post(ApiPaths::BATCH_MAILING_LIST, batch.to_h)
       response.to_h
     end
 
@@ -55,7 +56,7 @@ module Belpost
       end
 
       parcel = Models::Parcel.new(parcel_data)
-      response = @api_service.post("/api/v1/business/postal-deliveries", parcel.to_h)
+      response = @api_service.post(ApiPaths::POSTAL_DELIVERIES, parcel.to_h)
       response.to_h
     end
 
@@ -64,7 +65,7 @@ module Belpost
     # @return [Array<Hash>] The HS codes tree as an array of hashes.
     # @raise [Belpost::ApiError] If the API returns an error response.
     def fetch_hs_codes
-      response = @api_service.get("/api/v1/business/postal-deliveries/hs-codes/list")
+      response = @api_service.get(ApiPaths::POSTAL_DELIVERIES_HS_CODES)
       response.to_h
     end
 
@@ -75,7 +76,7 @@ module Belpost
     # @raise [Belpost::ApiError] If the API returns an error response.
     def validate_postal_delivery(country_code)
       country_code = country_code.upcase
-      response = @api_service.get("/api/v1/business/postal-deliveries/validation/#{country_code}")
+      response = @api_service.get("#{ApiPaths::POSTAL_DELIVERIES_VALIDATION}/#{country_code}")
       response.to_h
     end
 
@@ -84,7 +85,20 @@ module Belpost
     # @return [Hash] The parsed JSON response containing available countries.
     # @raise [Belpost::ApiError] If the API returns an error response.
     def fetch_available_countries
-      response = @api_service.get("/api/v1/business/postal-deliveries/countries")
+      response = @api_service.get(ApiPaths::POSTAL_DELIVERIES_COUNTRIES)
+      response.to_h
+    end
+
+    # Finds a batch by its ID.
+    #
+    # @param id [Integer] The ID of the batch to find.
+    # @return [Hash] The batch data if found.
+    # @raise [Belpost::ApiError] If the API returns an error response.
+    def find_batch_by_id(id)
+      raise ValidationError, "ID must be provided" if id.nil?
+      raise ValidationError, "ID must be a positive integer" unless id.is_a?(Integer) && id.positive?
+
+      response = @api_service.get("#{ApiPaths::BATCH_MAILING_LIST}/#{id}")
       response.to_h
     end
 
@@ -105,7 +119,7 @@ module Belpost
       raise ValidationError, "Address must be filled" if address.empty?
 
       formatted_address = format_address(address)
-      response = @api_service.get("/api/v1/business/geo-directory/search-address", { search: formatted_address })
+      response = @api_service.get(ApiPaths::GEO_DIRECTORY_SEARCH_ADDRESS, { search: formatted_address })
       response.to_h
     end
 
@@ -132,7 +146,7 @@ module Belpost
       params[:building] = format_building_number(building) if building
       params[:limit] = limit
 
-      response = @api_service.get("/api/v1/business/geo-directory/postcode", params)
+      response = @api_service.get(ApiPaths::GEO_DIRECTORY_POSTCODE, params)
       response.to_h
     end
 

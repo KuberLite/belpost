@@ -1,6 +1,22 @@
 # Changelog
 
-## [0.8.0] - 2025-04-01
+## [0.9.0] - 2025-04-15
+
+### Changed
+- Refactored API paths into a separate module `Belpost::ApiPaths` for better maintainability
+- Moved all hardcoded API endpoints into constants in `api_paths.rb`
+- Updated all client methods to use the new API path constants
+- Updated tests to use the new API path constants
+
+### Added
+- Added batch retrieval functionality via `find_batch_by_id` method
+- Support for finding batch mailings by their ID with validation
+- New module `Belpost::ApiPaths` with organized API endpoint constants:
+  - Batch mailing paths
+  - Postal deliveries paths
+  - Geo directory paths
+
+## [0.8.0] - 2025-04-14
 ### Added
 - Added batch mailing functionality via `create_batch` method
 - Support for creating batch mailings with various delivery types

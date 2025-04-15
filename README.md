@@ -308,6 +308,14 @@ postcodes = client.search_postcode(
 puts postcodes
 ```
 
+### Finding a batch by ID
+
+```ruby
+client = Belpost::Client.new
+batch = client.find_batch_by_id(123)
+puts batch
+```
+
 ## Error handling
 
 The client may throw the following exceptions:
