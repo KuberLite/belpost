@@ -8,23 +8,7 @@ module Belpost
     class BatchSchema < Dry::Validation::Contract
       params do
         required(:postal_delivery_type).filled(:str?).value(
-          included_in?: %w[
-            ordered_small_package
-            letter_declare_value
-            package
-            ems
-            ordered_parcel_post
-            ordered_letter
-            ordered_postcard
-            small_package_declare_value
-            package_declare_value
-            ecommerce_economical
-            ecommerce_standard
-            ecommerce_elite
-            ecommerce_express
-            ecommerce_light
-            ecommerce_optima
-          ]
+          included_in?: Belpost::PostalDeliveryTypes.all.map(&:to_s)
         )
 
         required(:direction).filled(:str?).value(

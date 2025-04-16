@@ -1,7 +1,12 @@
 # Changelog
 
-## [0.9.0] - 2025-04-15
+## [0.9.1] - 2024-04-16
 
+### Added
+- New `PostalDeliveryTypes` module for centralized management of postal delivery types
+- Tests for the `PostalDeliveryTypes` module
+
+## [0.9.0] - 2025-04-15
 ### Changed
 - Refactored API paths into a separate module `Belpost::ApiPaths` for better maintainability
 - Moved all hardcoded API endpoints into constants in `api_paths.rb`
