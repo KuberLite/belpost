@@ -37,6 +37,16 @@ module Belpost
         optional(:is_declared_value).maybe(:bool?)
         optional(:is_partial_receipt).maybe(:bool?)
       end
+
+      rule(:postal_delivery_type) do
+        if key? && value
+          errors = Belpost::PostalDeliveryTypes.validate_params(
+            value,
+            values
+          )
+          errors.each { |error| key.failure(error) }
+        end
+      end
     end
   end
 end 

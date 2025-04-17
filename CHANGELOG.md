@@ -1,7 +1,12 @@
-# Changelog
+## [0.9.2] - 2024-03-21
+### Added
+- Added support for ecommerce-specific parameters:
+  - `negotiated_rate`
+  - `is_declared_value`
+  - `is_partial_receipt`
+  - `postal_items_in_ops`
 
 ## [0.9.1] - 2024-04-16
-
 ### Added
 - New `PostalDeliveryTypes` module for centralized management of postal delivery types
 - Tests for the `PostalDeliveryTypes` module

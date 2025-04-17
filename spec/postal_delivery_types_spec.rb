@@ -34,4 +34,118 @@ RSpec.describe Belpost::PostalDeliveryTypes do
       expect(described_class.description("invalid_type")).to be_nil
     end
   end
+
+  describe ".validation_rules" do
+    it "returns rules for ecommerce types" do
+      rules = described_class.validation_rules("ecommerce_economical")
+      expect(rules).to include(
+        negotiated_rate: false,
+        declared_value: [true, false],
+        partial_receipt: false,
+        postal_items_in_ops: true
+      )
+    end
+
+    it "returns nil for non-ecommerce types" do
+      expect(described_class.validation_rules("ordered_small_package")).to be_nil
+    end
+
+    it "returns nil for invalid types" do
+      expect(described_class.validation_rules("invalid_type")).to be_nil
+    end
+  end
+
+  describe ".validate_params" do
+    context "with ecommerce_economical type" do
+      let(:type) { "ecommerce_economical" }
+
+      it "validates correct parameters" do
+        params = {
+          negotiated_rate: false,
+          is_declared_value: true,
+          is_partial_receipt: false,
+          postal_items_in_ops: true
+        }
+        expect(described_class.validate_params(type, params)).to be_empty
+      end
+
+      it "validates incorrect negotiated_rate" do
+        params = {
+          negotiated_rate: true,
+          is_declared_value: true,
+          is_partial_receipt: false,
+          postal_items_in_ops: true
+        }
+        errors = described_class.validate_params(type, params)
+        expect(errors).to include("negotiated_rate must be false for ecommerce_economical")
+      end
+
+      it "validates incorrect is_partial_receipt" do
+        params = {
+          negotiated_rate: false,
+          is_declared_value: true,
+          is_partial_receipt: true,
+          postal_items_in_ops: true
+        }
+        errors = described_class.validate_params(type, params)
+        expect(errors).to include("is_partial_receipt must be false for ecommerce_economical")
+      end
+
+      it "validates incorrect postal_items_in_ops" do
+        params = {
+          negotiated_rate: false,
+          is_declared_value: true,
+          is_partial_receipt: false,
+          postal_items_in_ops: false
+        }
+        errors = described_class.validate_params(type, params)
+        expect(errors).to include("postal_items_in_ops must be one of [true] for ecommerce_economical")
+      end
+    end
+
+    context "with ecommerce_standard type" do
+      let(:type) { "ecommerce_standard" }
+
+      it "validates correct parameters" do
+        params = {
+          negotiated_rate: false,
+          is_declared_value: true,
+          is_partial_receipt: false,
+          postal_items_in_ops: true
+        }
+        expect(described_class.validate_params(type, params)).to be_empty
+      end
+
+      it "validates incorrect negotiated_rate" do
+        params = {
+          negotiated_rate: true,
+          is_declared_value: true,
+          is_partial_receipt: false,
+          postal_items_in_ops: true
+        }
+        errors = described_class.validate_params(type, params)
+        expect(errors).to include("negotiated_rate must be false for ecommerce_standard")
+      end
+    end
+
+    it "returns empty array for non-ecommerce types" do
+      params = {
+        negotiated_rate: true,
+        is_declared_value: true,
+        is_partial_receipt: true,
+        postal_items_in_ops: true
+      }
+      expect(described_class.validate_params("ordered_small_package", params)).to be_empty
+    end
+
+    it "returns empty array for invalid types" do
+      params = {
+        negotiated_rate: true,
+        is_declared_value: true,
+        is_partial_receipt: true,
+        postal_items_in_ops: true
+      }
+      expect(described_class.validate_params("invalid_type", params)).to be_empty
+    end
+  end
 end 
