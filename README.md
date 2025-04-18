@@ -316,6 +316,38 @@ batch = client.find_batch_by_id(123)
 puts batch
 ```
 
+### Listing and searching for batches
+
+```ruby
+client = Belpost::Client.new
+
+# Get all batches with default pagination
+batches = client.list_batches
+puts "Total batches: #{batches["total"]}"
+
+# Get a specific page of results
+batches = client.list_batches(page: 2)
+
+# Filter by status (committed or uncommitted)
+committed_batches = client.list_batches(status: "committed")
+uncommitted_batches = client.list_batches(status: "uncommitted")
+
+# Set the number of batches per page
+batches = client.list_batches(per_page: 50)
+
+# Search for a specific batch by number
+batch_number = 12345
+search_results = client.list_batches(search: batch_number)
+
+# Combine multiple parameters
+filtered_batches = client.list_batches(
+  page: 2,
+  status: "committed",
+  per_page: 25,
+  search: 12345
+)
+```
+
 ## Error handling
 
 The client may throw the following exceptions:

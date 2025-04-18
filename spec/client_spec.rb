@@ -573,4 +573,100 @@ RSpec.describe Belpost::Client do
       end
     end
   end
+
+  describe "#list_batches" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:response_data) do
+      {
+        "total" => 1,
+        "current_page" => 1,
+        "per_page" => 100,
+        "data" => [
+          {
+            "id" => 12,
+            "name" => "Batch name",
+            "status" => "uncommitted"
+          }
+        ]
+      }
+    end
+    let(:api_response) { instance_double(Belpost::Models::ApiResponse, to_h: response_data) }
+
+    before do
+      allow(api_service).to receive(:get).and_return(api_response)
+    end
+
+    it "fetches batches with default parameters" do
+      client.list_batches
+      expect(api_service).to have_received(:get).with(
+        Belpost::ApiPaths::BATCH_MAILING_LIST,
+        { page: 1 }
+      )
+    end
+
+    it "fetches batches with specified page" do
+      client.list_batches(page: 2)
+      expect(api_service).to have_received(:get).with(
+        Belpost::ApiPaths::BATCH_MAILING_LIST,
+        { page: 2 }
+      )
+    end
+
+    it "fetches batches with specified status" do
+      client.list_batches(status: "committed")
+      expect(api_service).to have_received(:get).with(
+        Belpost::ApiPaths::BATCH_MAILING_LIST,
+        { page: 1, status: "committed" }
+      )
+    end
+
+    it "fetches batches with specified per_page" do
+      client.list_batches(per_page: 50)
+      expect(api_service).to have_received(:get).with(
+        Belpost::ApiPaths::BATCH_MAILING_LIST,
+        { page: 1, perPage: 50 }
+      )
+    end
+
+    it "fetches batches with specified search" do
+      client.list_batches(search: 12345)
+      expect(api_service).to have_received(:get).with(
+        Belpost::ApiPaths::BATCH_MAILING_LIST,
+        { page: 1, search: 12345 }
+      )
+    end
+
+    it "fetches batches with multiple parameters" do
+      client.list_batches(page: 3, status: "uncommitted", per_page: 25, search: 12345)
+      expect(api_service).to have_received(:get).with(
+        Belpost::ApiPaths::BATCH_MAILING_LIST,
+        { page: 3, status: "uncommitted", perPage: 25, search: 12345 }
+      )
+    end
+
+    it "validates page is a positive integer" do
+      expect { client.list_batches(page: 0) }.to raise_error(Belpost::ValidationError, /Page must be greater than 0/)
+      expect { client.list_batches(page: -1) }.to raise_error(Belpost::ValidationError, /Page must be greater than 0/)
+      expect { client.list_batches(page: "1") }.to raise_error(Belpost::ValidationError, /Page must be an integer/)
+    end
+
+    it "validates status is valid" do
+      expect { client.list_batches(status: "invalid") }.to raise_error(Belpost::ValidationError, /Status must be 'committed' or 'uncommitted'/)
+    end
+
+    it "validates per_page is a positive integer" do
+      expect { client.list_batches(per_page: 0) }.to raise_error(Belpost::ValidationError, /Per page must be positive/)
+      expect { client.list_batches(per_page: -1) }.to raise_error(Belpost::ValidationError, /Per page must be positive/)
+      expect { client.list_batches(per_page: "50") }.to raise_error(Belpost::ValidationError, /Per page must be an integer/)
+    end
+
+    it "validates search is an integer" do
+      expect { client.list_batches(search: "12345") }.to raise_error(Belpost::ValidationError, /Search must be an integer/)
+    end
+
+    it "returns the API response data" do
+      result = client.list_batches
+      expect(result).to eq(response_data)
+    end
+  end
 end 

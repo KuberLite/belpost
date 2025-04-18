@@ -1,4 +1,12 @@
-## [0.9.2] - 2024-03-21
+## [0.9.3] - 2025-04-18
+### Added
+- A new `list_batches` method in the Client class that:
+  - Supports pagination with the page parameter
+  - Allows filtering by batch status (committed or uncommitted)
+  - Enables limiting results per page with the per_page parameter
+  - Provides search functionality by batch number
+
+## [0.9.2] - 2025-04-17
 ### Added
 - Added support for ecommerce-specific parameters:
   - `negotiated_rate`
@@ -6,7 +14,7 @@
   - `is_partial_receipt`
   - `postal_items_in_ops`
 
-## [0.9.1] - 2024-04-16
+## [0.9.1] - 2025-04-16
 ### Added
 - New `PostalDeliveryTypes` module for centralized management of postal delivery types
 - Tests for the `PostalDeliveryTypes` module
