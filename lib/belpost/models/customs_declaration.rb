@@ -50,8 +50,7 @@ module Belpost
       def valid?
         return false if @category && !VALID_CATEGORIES.include?(@category)
         return false if @category == "other" && @explanation.nil?
-        
-        # Проверка наличия обязательных полей для коммерческих отправлений
+
         if %w[merchandise sample returned_goods].include?(@category)
           return false if @items.empty?
           return false if @price.empty?
@@ -61,4 +60,4 @@ module Belpost
       end
     end
   end
-end 
+end

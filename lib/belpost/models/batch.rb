@@ -39,4 +39,4 @@ module Belpost
       end
     end
   end
-end 
+end

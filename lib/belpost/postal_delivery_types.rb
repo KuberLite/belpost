@@ -81,6 +81,7 @@ module Belpost
     # @return [Boolean] true if the type is valid, false otherwise
     def self.valid?(type)
       return false if type.nil?
+
       TYPES.key?(type.to_sym)
     rescue NoMethodError
       false
@@ -143,11 +144,11 @@ module Belpost
             errors << "postal_items_in_ops must be one of #{rules[:postal_items_in_ops]} for #{type_sym}"
           end
         elsif rules[:postal_items_in_ops] != params[:postal_items_in_ops]
-          if rules[:postal_items_in_ops] == true
-            errors << "postal_items_in_ops must be one of [true] for #{type_sym}"
-          else
-            errors << "postal_items_in_ops must be #{rules[:postal_items_in_ops]} for #{type_sym}"
-          end
+          errors << if rules[:postal_items_in_ops] == true
+                      "postal_items_in_ops must be one of [true] for #{type_sym}"
+                    else
+                      "postal_items_in_ops must be #{rules[:postal_items_in_ops]} for #{type_sym}"
+                    end
         end
       end
 

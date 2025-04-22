@@ -34,9 +34,7 @@ module Belpost
     # @raise [Belpost::ApiError] If the API returns an error response.
     def create_batch(batch_data)
       validation_result = Validation::BatchSchema.new.call(batch_data)
-      unless validation_result.success?
-        raise ValidationError, "Invalid batch data: #{validation_result.errors.to_h}"
-      end
+      raise ValidationError, "Invalid batch data: #{validation_result.errors.to_h}" unless validation_result.success?
 
       batch = Models::Batch.new(batch_data)
       response = @api_service.post(ApiPaths::BATCH_MAILING_LIST, batch.to_h)
@@ -51,9 +49,7 @@ module Belpost
     # @raise [Belpost::ApiError] If the API returns an error response.
     def create_parcel(parcel_data)
       validation_result = Validation::ParcelSchema.call(parcel_data)
-      unless validation_result.success?
-        raise ValidationError, "Invalid parcel data: #{validation_result.errors.to_h}"
-      end
+      raise ValidationError, "Invalid parcel data: #{validation_result.errors.to_h}" unless validation_result.success?
 
       parcel = Models::Parcel.new(parcel_data)
       response = @api_service.post(ApiPaths::POSTAL_DELIVERIES, parcel.to_h)
@@ -157,37 +153,43 @@ module Belpost
     # @param per_page [Integer] Number of items per page (optional)
     # @param search [Integer] Search by batch number (optional)
     # @return [Hash] The parsed JSON response containing batch list with pagination details
-    # @raise [Belpost::ValidationError] If parameters are invalid
+    # @raise [Belpost::ValidationError] If   parameters are invalid
     # @raise [Belpost::ApiError] If the API returns an error response
     def list_batches(page: 1, status: nil, per_page: nil, search: nil)
       params = {}
-      
+
       # Validate page parameter
       if page
         raise ValidationError, "Page must be an integer" unless page.is_a?(Integer)
         raise ValidationError, "Page must be greater than 0" unless page.positive?
+
         params[:page] = page
       end
-      
+
       # Validate status parameter
       if status
-        raise ValidationError, "Status must be 'committed' or 'uncommitted'" unless ["committed", "uncommitted"].include?(status)
+        unless %w[committed uncommitted].include?(status)
+          raise ValidationError, "Status must be 'committed' or 'uncommitted'"
+        end
+
         params[:status] = status
       end
-      
+
       # Validate per_page parameter
       if per_page
         raise ValidationError, "Per page must be an integer" unless per_page.is_a?(Integer)
         raise ValidationError, "Per page must be positive" unless per_page.positive?
+
         params[:perPage] = per_page
       end
-      
+
       # Validate search parameter
       if search
         raise ValidationError, "Search must be an integer" unless search.is_a?(Integer)
+
         params[:search] = search
       end
-      
+
       response = @api_service.get(ApiPaths::BATCH_MAILING_LIST, params)
       response.to_h
     end
@@ -207,11 +209,11 @@ module Belpost
       return building unless building
 
       building.gsub(/\s+/, " ")
-             .gsub(/\s*корпус\s*(\d+)\s*/i, '/\1')
-             .gsub(/\s*корп\s*(\d+)\s*/i, '/\1')
-             .gsub(/\s*кор\s*(\d+)\s*/i, '/\1')
-             .gsub(/\s*к\s*(\d+)\s*/i, '/\1')
-             .strip
+              .gsub(/\s*корпус\s*(\d+)\s*/i, '/\1')
+              .gsub(/\s*корп\s*(\d+)\s*/i, '/\1')
+              .gsub(/\s*кор\s*(\d+)\s*/i, '/\1')
+              .gsub(/\s*к\s*(\d+)\s*/i, '/\1')
+              .strip
     end
   end
 end

@@ -194,23 +194,19 @@ module Belpost
       private
 
       def validate!
-        # Проверка обязательных полей
         raise ValidationError, "Weight is required" unless @data.dig(:parcel, :measures, :weight)
         raise ValidationError, "Sender type is required" unless @data.dig(:sender, :type)
         raise ValidationError, "Recipient type is required" unless @data.dig(:recipient, :type)
 
-        # Проверка логики
         if @data.dig(:addons, :cash_on_delivery) && !@data.dig(:addons, :declared_value)
           raise ValidationError, "Declared value is required when cash on delivery is set"
         end
 
-        # Проверка международных отправлений
-        if @data.dig(:parcel, :arrival, :country) != "BY"
-          if @data[:cp72].nil? || @data[:cp72].empty?
-            raise ValidationError, "Customs declaration is required for international parcels"
-          end
-        end
+        return unless @data.dig(:parcel, :arrival, :country) != "BY"
+        return unless @data[:cp72].nil? || @data[:cp72].empty?
+
+        raise ValidationError, "Customs declaration is required for international parcels"
       end
     end
   end
-end 
+end
