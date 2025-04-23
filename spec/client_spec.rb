@@ -669,4 +669,152 @@ RSpec.describe Belpost::Client do
       expect(result).to eq(response_data)
     end
   end
+
+  describe "#create_batch" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:batch_data) do
+      {
+        postal_delivery_type: "ordered_letter",
+        direction: "internal",
+        payment_type: "cash",
+        negotiated_rate: true,
+        name: "Test Batch",
+        is_declared_value: true
+      }
+    end
+    let(:response_data) do
+      {
+        "id" => 123,
+        "postal_delivery_type" => "ordered_letter",
+        "direction" => "internal",
+        "payment_type" => "cash",
+        "negotiated_rate" => true,
+        "name" => "Test Batch",
+        "is_declared_value" => true
+      }
+    end
+    let(:validation_result) { instance_double(Dry::Validation::Result, success?: true) }
+    let(:api_response) { instance_double(Belpost::Models::ApiResponse, to_h: response_data) }
+
+    before do
+      allow(Belpost::Validation::BatchSchema).to receive(:new).and_return(double(call: validation_result))
+      allow(api_service).to receive(:post).and_return(api_response)
+    end
+
+    it "validates the batch data" do
+      client.create_batch(batch_data)
+      expect(Belpost::Validation::BatchSchema).to have_received(:new)
+      expect(validation_result).to have_received(:success?)
+    end
+
+    it "raises ValidationError when validation fails" do
+      allow(validation_result).to receive(:success?).and_return(false)
+      allow(validation_result).to receive(:errors).and_return(double(to_h: { error: "message" }))
+
+      expect { client.create_batch(batch_data) }.to raise_error(Belpost::ValidationError)
+    end
+
+    it "creates a batch using the API service" do
+      client.create_batch(batch_data)
+      expect(api_service).to have_received(:post).with(
+        Belpost::ApiPaths::BATCH_MAILING_LIST,
+        batch_data
+      )
+    end
+
+    it "returns the API response data" do
+      result = client.create_batch(batch_data)
+      expect(result).to eq(response_data)
+    end
+  end
+  
+  describe "#create_batch_items" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:batch_id) { 12345 }
+    let(:items_data) do
+      {
+        items: [
+          {
+            recipient_id: 1,
+            notification: 2,
+            category: 0,
+            weight: 100,
+            addons: {
+              declared_value: 50.0,
+              cash_on_delivery: 30.0
+            }
+          }
+        ]
+      }
+    end
+    let(:response_data) do
+      {
+        "created" => [
+          {
+            "id" => 22091,
+            "list_id" => batch_id,
+            "weight" => 100,
+            "cost" => 11.04,
+            "vat" => 2.21,
+            "notification" => "2",
+            "s10code" => "PC000148797BY",
+            "recipient" => {
+              "id" => 1
+            },
+            "addons" => {
+              "declared_value" => 50.0,
+              "cash_on_delivery" => 30.0
+            }
+          }
+        ],
+        "failed" => []
+      }
+    end
+    let(:validation_result) { instance_double(Dry::Validation::Result, success?: true) }
+    let(:api_response) { instance_double(Belpost::Models::ApiResponse, to_h: response_data) }
+
+    before do
+      allow(Belpost::Validation::BatchItemSchema).to receive(:call).and_return(validation_result)
+      allow(api_service).to receive(:post).and_return(api_response)
+    end
+
+    it "validates the batch item data" do
+      client.create_batch_items(batch_id, items_data)
+      expect(Belpost::Validation::BatchItemSchema).to have_received(:call).with(items_data)
+    end
+    
+    it "raises ValidationError when batch_id is nil" do
+      expect { client.create_batch_items(nil, items_data) }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be provided")
+    end
+    
+    it "raises ValidationError when batch_id is not a positive integer" do
+      expect { client.create_batch_items(0, items_data) }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be a positive integer")
+      
+      expect { client.create_batch_items("1", items_data) }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be a positive integer")
+    end
+
+    it "raises ValidationError when validation fails" do
+      allow(validation_result).to receive(:success?).and_return(false)
+      allow(validation_result).to receive(:errors).and_return(double(to_h: { error: "message" }))
+
+      expect { client.create_batch_items(batch_id, items_data) }
+        .to raise_error(Belpost::ValidationError, /Invalid batch item data/)
+    end
+
+    it "creates batch items using the API service" do
+      client.create_batch_items(batch_id, items_data)
+      expect(api_service).to have_received(:post).with(
+        "/api/v1/business/batch-mailing/list/12345/item",
+        items_data
+      )
+    end
+
+    it "returns the API response data" do
+      result = client.create_batch_items(batch_id, items_data)
+      expect(result).to eq(response_data)
+    end
+  end
 end 

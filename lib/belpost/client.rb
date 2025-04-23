@@ -3,9 +3,11 @@
 require_relative "api_service"
 require_relative "models/parcel"
 require_relative "models/batch"
+require_relative "models/batch_item"
 require_relative "models/api_response"
 require_relative "validations/address_schema"
 require_relative "validations/batch_schema"
+require_relative "validations/batch_item_schema"
 require_relative "api_paths"
 
 module Belpost
@@ -38,6 +40,26 @@ module Belpost
 
       batch = Models::Batch.new(batch_data)
       response = @api_service.post(ApiPaths::BATCH_MAILING_LIST, batch.to_h)
+      response.to_h
+    end
+
+    # Creates new items in a batch by sending a POST request to the API.
+    #
+    # @param batch_id [Integer] The ID of the batch where items should be added.
+    # @param items_data [Hash] The data for the batch items to create.
+    # @return [Hash] The parsed JSON response from the API.
+    # @raise [Belpost::InvalidRequestError] If the request data is invalid.
+    # @raise [Belpost::ApiError] If the API returns an error response.
+    def create_batch_items(batch_id, items_data)
+      raise ValidationError, "Batch ID must be provided" if batch_id.nil?
+      raise ValidationError, "Batch ID must be a positive integer" unless batch_id.is_a?(Integer) && batch_id.positive?
+
+      validation_result = Validation::BatchItemSchema.call(items_data)
+      raise ValidationError, "Invalid batch item data: #{validation_result.errors.to_h}" unless validation_result.success?
+
+      batch_item = Models::BatchItem.new(items_data)
+      path = ApiPaths::BATCH_MAILING_LIST_ITEM.gsub(':id', batch_id.to_s)
+      response = @api_service.post(path, batch_item.to_h)
       response.to_h
     end
 
