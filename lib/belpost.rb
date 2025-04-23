@@ -18,6 +18,8 @@ require_relative "belpost/models/parcel_builder"
 require_relative "belpost/postal_delivery_types"
 require_relative "belpost/validations/batch_schema"
 require_relative "belpost/validations/parcel_schema"
+require_relative "belpost/validations/address_schema"
+require_relative "belpost/validations/postcode_schema"
 
 # Load client last as it depends on other files
 require_relative "belpost/client"

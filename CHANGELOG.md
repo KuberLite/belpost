@@ -1,3 +1,9 @@
+## [0.11.0] - 2025-04-23
+### Added
+- Added support for finding addresses by postal code via `find_addresses_by_postcode` method
+- Added new validation schema for postal codes
+- Added comprehensive tests for the new endpoint
+
 ## [0.9.3] - 2025-04-18
 ### Added
 - A new `list_batches` method in the Client class that:

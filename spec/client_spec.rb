@@ -817,4 +817,105 @@ RSpec.describe Belpost::Client do
       expect(result).to eq(response_data)
     end
   end
+
+  describe "#find_addresses_by_postcode" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:postcode) { "220001" }
+    let(:addresses) do
+      [
+        {
+          "postcode" => "220001",
+          "region" => "Минская",
+          "district" => "Минский",
+          "city" => "Минск",
+          "city_type" => "город",
+          "buildings" => "1, 2, 3",
+          "street" => "Ленина",
+          "street_type" => "улица",
+          "short_address" => "220001, город Минск, улица Ленина",
+          "autocomplete_address" => "220001, город Минск, улица Ленина"
+        }
+      ]
+    end
+    let(:validation_result) { instance_double(Dry::Validation::Result, success?: true) }
+    let(:api_response) { instance_double(Belpost::Models::ApiResponse, to_h: addresses) }
+
+    before do
+      allow(Belpost::Validation::PostcodeSchema).to receive(:new).and_return(
+        instance_double(Belpost::Validation::PostcodeSchema, call: validation_result)
+      )
+      allow(api_service).to receive(:get).and_return(api_response)
+    end
+
+    context "when postcode is valid" do
+      it "returns addresses for the specified postcode" do
+        result = client.find_addresses_by_postcode(postcode)
+        expect(api_service).to have_received(:get).with(
+          Belpost::ApiPaths::GEO_DIRECTORY_ADDRESSES,
+          { postcode: postcode }
+        )
+        expect(result).to eq(addresses)
+      end
+    end
+
+    context "when postcode is invalid" do
+      before do
+        allow(validation_result).to receive(:success?).and_return(false)
+        allow(validation_result).to receive(:errors).and_return(double(to_h: { error: "message" }))
+      end
+
+      it "raises ValidationError when postcode is nil" do
+        expect { client.find_addresses_by_postcode(nil) }
+          .to raise_error(Belpost::ValidationError, /Invalid postcode/)
+      end
+
+      it "raises ValidationError when postcode is empty" do
+        expect { client.find_addresses_by_postcode("") }
+          .to raise_error(Belpost::ValidationError, /Invalid postcode/)
+      end
+
+      it "raises ValidationError when postcode is not 6 digits" do
+        expect { client.find_addresses_by_postcode("12345") }
+          .to raise_error(Belpost::ValidationError, /Invalid postcode/)
+      end
+
+      it "raises ValidationError when postcode contains non-digits" do
+        expect { client.find_addresses_by_postcode("12345A") }
+          .to raise_error(Belpost::ValidationError, /Invalid postcode/)
+      end
+    end
+
+    context "when API returns an error" do
+      before do
+        allow(api_service).to receive(:get).and_raise(Belpost::AuthenticationError.new("Authentication failed"))
+      end
+
+      it "raises an AuthenticationError" do
+        expect { client.find_addresses_by_postcode(postcode) }
+          .to raise_error(Belpost::AuthenticationError)
+      end
+    end
+
+    context "when API response has validation errors" do
+      before do
+        allow(api_service).to receive(:get).and_raise(
+          Belpost::InvalidRequestError.new(
+            "Invalid request",
+            status_code: 422,
+            response_body: {
+              message: "The given data was invalid.",
+              errors: {
+                search: ["Поле postcode имеет ошибочный формат."]
+              }
+            }.to_json
+          )
+        )
+      end
+
+      it "raises an InvalidRequestError" do
+        expect { client.find_addresses_by_postcode(postcode) }
+          .to raise_error(Belpost::InvalidRequestError)
+      end
+    end
+  end
 end 

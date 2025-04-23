@@ -8,6 +8,7 @@ require_relative "models/api_response"
 require_relative "validations/address_schema"
 require_relative "validations/batch_schema"
 require_relative "validations/batch_item_schema"
+require_relative "validations/postcode_schema"
 require_relative "api_paths"
 
 module Belpost
@@ -138,6 +139,20 @@ module Belpost
 
       formatted_address = format_address(address)
       response = @api_service.get(ApiPaths::GEO_DIRECTORY_SEARCH_ADDRESS, { search: formatted_address })
+      response.to_h
+    end
+
+    # Searches for addresses belonging to a specific postal code (postcode).
+    #
+    # @param postcode [String] The postal code to search for (6 digits)
+    # @return [Array<Hash>] An array of addresses belonging to the specified postal code
+    # @raise [Belpost::ValidationError] If the postcode is invalid
+    # @raise [Belpost::ApiError] If the API returns an error response
+    def find_addresses_by_postcode(postcode)
+      validation_result = Validation::PostcodeSchema.new.call(postcode: postcode)
+      raise ValidationError, "Invalid postcode: #{validation_result.errors.to_h}" unless validation_result.success?
+
+      response = @api_service.get(ApiPaths::GEO_DIRECTORY_ADDRESSES, { postcode: postcode })
       response.to_h
     end
 

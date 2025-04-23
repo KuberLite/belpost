@@ -22,5 +22,6 @@ module Belpost
     # Geo directory paths
     GEO_DIRECTORY_SEARCH_ADDRESS = "/api/v1/business/geo-directory/search-address"
     GEO_DIRECTORY_POSTCODE = "/api/v1/business/geo-directory/postcode"
+    GEO_DIRECTORY_ADDRESSES = "/api/v1/business/geo-directory/addresses"
   end
 end

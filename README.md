@@ -308,6 +308,14 @@ postcodes = client.search_postcode(
 puts postcodes
 ```
 
+### Finding addresses by postal code
+
+```ruby
+client = Belpost::Client.new
+addresses = client.find_addresses_by_postcode("210001")
+puts addresses
+```
+
 ### Finding a batch by ID
 
 ```ruby
