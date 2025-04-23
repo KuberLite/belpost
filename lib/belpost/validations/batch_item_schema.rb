@@ -154,6 +154,29 @@ module Belpost
         end
       end
 
+      # Custom validation for cash_on_delivery and declared_value
+      rule('items[].addons.cash_on_delivery') do
+        if key? && value.is_a?(Array)
+          value.each_with_index do |item, idx|
+            if item[:addons] && item[:addons][:cash_on_delivery] == ""
+              # Allow empty string by manually succeeding the validation
+              key(:"items.#{idx}.addons.cash_on_delivery").success("")
+            end
+          end
+        end
+      end
+
+      rule('items[].addons.declared_value') do
+        if key? && value.is_a?(Array)
+          value.each_with_index do |item, idx|
+            if item[:addons] && item[:addons][:declared_value] == ""
+              # Allow empty string by manually succeeding the validation
+              key(:"items.#{idx}.addons.declared_value").success("")
+            end
+          end
+        end
+      end
+
       # Add class method to make it callable directly
       def self.call(params)
         new.call(params)

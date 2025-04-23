@@ -1,3 +1,8 @@
+## [0.11.1] - 2025-04-24
+### Changed
+- Enhanced validation for batch item schema to allow empty strings for `cash_on_delivery` and `declared_value` fields
+- Improved flexibility in the validation of numeric fields to support both positive numeric values and empty strings
+
 ## [0.11.0] - 2025-04-23
 ### Added
 - Added support for finding addresses by postal code via `find_addresses_by_postcode` method
