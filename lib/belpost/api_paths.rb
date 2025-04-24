@@ -12,6 +12,7 @@ module Belpost
     BATCH_MAILING_COMMIT = "/api/v1/business/batch-mailing/list/:id/commit"
     BATCH_MAILING_GENERATE_BLANK = "/api/v1/business/batch-mailing/list/:id/generate-blank"
     BATCH_MAILING_LIST_ITEM = "/api/v1/business/batch-mailing/list/:id/item"
+    BATCH_MAILING_DOCUMENTS_DOWNLOAD = "/api/v1/batch-mailing/documents/:id/download"
 
     # Postal deliveries paths
     POSTAL_DELIVERIES = "/api/v1/business/postal-deliveries"

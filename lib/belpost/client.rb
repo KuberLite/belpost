@@ -258,6 +258,31 @@ module Belpost
       response.to_h
     end
 
+    # Downloads batch mailing documents as a ZIP archive.
+    #
+    # This method retrieves a ZIP archive containing all documents related to a batch mailing.
+    # The response contains binary data that can be saved as a ZIP file.
+    #
+    # @param document_id [Integer] The ID of the document to download
+    # @return [Hash] Hash containing binary data, status code and headers
+    # @raise [Belpost::ValidationError] If the document_id parameter is invalid
+    # @raise [Belpost::ApiError] If the API returns an error response
+    def download_batch_documents(document_id)
+      raise ValidationError, "Document ID must be provided" if document_id.nil?
+      raise ValidationError, "Document ID must be a positive integer" unless document_id.is_a?(Integer) && document_id.positive?
+
+      path = ApiPaths::BATCH_MAILING_DOCUMENTS_DOWNLOAD.gsub(':id', document_id.to_s)
+      response = @api_service.get_binary(path)
+      
+      # Ensure we have the correct content type for a ZIP file
+      content_type = response[:headers]["content-type"]&.first
+      unless content_type && content_type.include?("application/zip")
+        @logger.warn("Expected ZIP file but got content type: #{content_type}")
+      end
+      
+      response
+    end
+
     private
 
     def format_address(address)

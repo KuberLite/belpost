@@ -47,6 +47,31 @@ module Belpost
         end
       end
     end
+    
+    # Performs a GET request to the specified path and returns binary data.
+    #
+    # @param path [String] The API endpoint path.
+    # @param params [Hash] The query parameters (default: {}).
+    # @return [Hash] Hash containing binary data, status code and headers
+    def get_binary(path, params = {})
+      Retry.with_retry do
+        uri = URI("#{@base_url}#{path}")
+        uri.query = URI.encode_www_form(params) unless params.empty?
+        request = Net::HTTP::Get.new(uri)
+        add_headers(request)
+        request["Accept"] = "*/*"  # Override Accept header to receive any content type
+
+        log_request(request)
+        response = execute_request(uri, request)
+        log_response(response, binary: true)
+
+        {
+          data: response.body,
+          status_code: response.code.to_i,
+          headers: response.to_hash
+        }
+      end
+    end
 
     # Performs a POST request to the specified path with the given body.
     #
@@ -188,23 +213,58 @@ module Belpost
       end
     end
 
+    # Logs the HTTP request details.
+    #
+    # @param request [Net::HTTP::Request] The HTTP request object.
+    def log_request(request)
+      @logger.info("API Request: #{request.method} #{request.uri}")
+      @logger.debug("Request Headers: #{request.each_header.to_h}") if request.respond_to?(:each_header)
+      @logger.debug("Request Body: #{request.body}") if request.body
+    end
+
+    # Logs the HTTP response details.
+    #
+    # @param response [Net::HTTP::Response] The HTTP response object.
+    # @param binary [Boolean] If this is a binary response (default: false).
+    def log_response(response, binary: false)
+      status_message = response.respond_to?(:message) ? " #{response.message}" : ""
+      @logger.info("API Response: #{response.code}#{status_message}")
+      
+      if response.respond_to?(:each_header)
+        @logger.debug("Response Headers: #{response.each_header.to_h}")
+      elsif response.respond_to?(:to_hash)
+        @logger.debug("Response Headers: #{response.to_hash}")
+      end
+      
+      if binary
+        @logger.debug("Response Body: [BINARY DATA]")
+      else
+        @logger.debug("Response Body: #{response.body}")
+      end
+    end
+
+    # Handles the HTTP response.
+    #
+    # @param response [Net::HTTP::Response] The HTTP response object.
+    # @return [Net::HTTP::Response] The HTTP response object if successful.
+    # @raise [Belpost::ApiError] If the API returns an error response.
     def handle_response(response)
-      case response.code
-      when "200", "201"
+      case response.code.to_i
+      when 200..299
         response
-      when "401", "403"
+      when 401, 403
         raise AuthenticationError.new(
           "Authentication failed",
           status_code: response.code.to_i,
           response_body: response.body
         )
-      when "429"
+      when 429
         raise RateLimitError.new(
           "Rate limit exceeded",
           status_code: response.code.to_i,
           response_body: response.body
         )
-      when "400"
+      when 400
         raise InvalidRequestError.new(
           "Invalid request",
           status_code: response.code.to_i,
@@ -217,18 +277,6 @@ module Belpost
           response_body: response.body
         )
       end
-    end
-
-    def log_request(request)
-      @logger.info("Making #{request.method} request to #{request.uri}")
-      @logger.debug("Request headers: #{request.to_hash}")
-      @logger.debug("Request body: #{request.body}") if request.body
-    end
-
-    def log_response(response)
-      @logger.info("Received response with status #{response.code}")
-      @logger.debug("Response headers: #{response.to_hash}")
-      @logger.debug("Response body: #{response.body}")
     end
   end
 end

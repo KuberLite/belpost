@@ -1,3 +1,8 @@
+## [0.12.0] - 2025-04-24
+### Added
+- Added support for downloading batch mailing documents as ZIP archives via `download_batch_documents` method
+- New `get_binary` method in ApiService to handle binary data downloads
+
 ## [0.11.2] - 2025-04-24
 ### Added
 - Added support for generating address labels for batch mailings via `generate_batch_blanks` method

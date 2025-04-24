@@ -265,4 +265,54 @@ RSpec.describe Belpost::ApiService do
       expect(result.status_code).to eq(200)
     end
   end
+
+  describe "#get_binary" do
+    let(:endpoint) { "/api/v1/batch-mailing/documents/12345/download" }
+    let(:uri) { URI("#{base_url}#{endpoint}") }
+    let(:binary_data) { "\x50\x4B\x03\x04" } # ZIP file signature bytes
+
+    let(:success_response) do
+      response = double("HTTP Response")
+      allow(response).to receive(:code).and_return("200")
+      allow(response).to receive(:message).and_return("OK")
+      allow(response).to receive(:body).and_return(binary_data)
+      allow(response).to receive(:to_hash).and_return({
+        "content-type" => ["application/zip"],
+        "content-disposition" => ["attachment; filename=documents.zip"]
+      })
+      response
+    end
+
+    it "makes a GET request to the specified endpoint" do
+      expect(http_client).to receive(:request) do |req|
+        expect(req.method).to eq("GET")
+        expect(req.path).to include(endpoint)
+        success_response
+      end
+
+      service.get_binary(endpoint)
+    end
+
+    it "sets the correct headers" do
+      expect(http_client).to receive(:request) do |req|
+        expect(req["Authorization"]).to eq("Bearer #{jwt_token}")
+        expect(req["Accept"]).to eq("*/*")
+        expect(req["Content-Type"]).to eq("application/json")
+        success_response
+      end
+
+      service.get_binary(endpoint)
+    end
+
+    it "returns a hash with the binary data" do
+      allow(http_client).to receive(:request).and_return(success_response)
+
+      result = service.get_binary(endpoint)
+
+      expect(result).to be_a(Hash)
+      expect(result[:data]).to eq(binary_data)
+      expect(result[:status_code]).to eq(200)
+      expect(result[:headers]).to include("content-type" => ["application/zip"])
+    end
+  end
 end 

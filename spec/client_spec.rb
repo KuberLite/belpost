@@ -968,4 +968,72 @@ RSpec.describe Belpost::Client do
       expect(result).to eq(response_data)
     end
   end
+
+  describe "#download_batch_documents" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:document_id) { 12345 }
+    let(:binary_data) { "\x50\x4B\x03\x04" } # ZIP file signature bytes
+    let(:response_headers) { { "content-type" => ["application/zip"], "content-disposition" => ["attachment; filename=documents.zip"] } }
+    let(:response_data) do
+      {
+        data: binary_data,
+        status_code: 200,
+        headers: response_headers
+      }
+    end
+
+    before do
+      allow(api_service).to receive(:get_binary).and_return(response_data)
+    end
+
+    it "fetches document data using the API service" do
+      client.download_batch_documents(document_id)
+      expect(api_service).to have_received(:get_binary).with("/api/v1/batch-mailing/documents/12345/download")
+    end
+
+    it "returns the API response data" do
+      result = client.download_batch_documents(document_id)
+      expect(result).to eq(response_data)
+      expect(result[:data]).to eq(binary_data)
+      expect(result[:headers]["content-type"].first).to eq("application/zip")
+    end
+
+    context "with invalid document ID" do
+      it "raises ValidationError for nil document ID" do
+        expect { client.download_batch_documents(nil) }.to raise_error(
+          Belpost::ValidationError,
+          /Document ID must be provided/
+        )
+      end
+
+      it "raises ValidationError for non-integer document ID" do
+        expect { client.download_batch_documents("12345") }.to raise_error(
+          Belpost::ValidationError,
+          /Document ID must be a positive integer/
+        )
+      end
+
+      it "raises ValidationError for negative document ID" do
+        expect { client.download_batch_documents(-1) }.to raise_error(
+          Belpost::ValidationError,
+          /Document ID must be a positive integer/
+        )
+      end
+    end
+
+    context "when API returns error" do
+      before do
+        allow(api_service).to receive(:get_binary).and_raise(
+          Belpost::ApiError.new("API Error")
+        )
+      end
+
+      it "raises ApiError" do
+        expect { client.download_batch_documents(document_id) }.to raise_error(
+          Belpost::ApiError,
+          "API Error"
+        )
+      end
+    end
+  end
 end 
