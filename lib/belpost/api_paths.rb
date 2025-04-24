@@ -5,8 +5,8 @@ module Belpost
   module ApiPaths
     # Batch mailing paths
     BATCH_MAILING_LIST = "/api/v1/business/batch-mailing/list"
+    BATCH_MAILING_LIST_BY_ID = "/api/v1/business/batch-mailing/list/:id"
     BATCH_MAILING_DOCUMENTS = "/api/v1/business/batch-mailing/documents"
-    BATCH_MAILING_ITEM = "/api/v1/business/batch-mailing/item"
     BATCH_MAILING_DUPLICATE = "/api/v1/business/batch-mailing/list/:id/duplicate"
     BATCH_MAILING_DUPLICATE_FULL = "/api/v1/business/batch-mailing/list/:id/duplicate-full"
     BATCH_MAILING_COMMIT = "/api/v1/business/batch-mailing/list/:id/commit"

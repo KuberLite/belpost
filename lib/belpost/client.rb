@@ -4,6 +4,7 @@ require_relative "api_service"
 require_relative "models/parcel"
 require_relative "models/batch"
 require_relative "models/batch_item"
+require_relative "models/batch_status"
 require_relative "models/api_response"
 require_relative "validations/address_schema"
 require_relative "validations/batch_schema"
@@ -112,12 +113,14 @@ module Belpost
     #
     # @param id [Integer] The ID of the batch to find.
     # @return [Hash] The batch data if found.
+    # @raise [Belpost::ValidationError] If the ID parameter is invalid
     # @raise [Belpost::ApiError] If the API returns an error response.
     def find_batch_by_id(id)
       raise ValidationError, "ID must be provided" if id.nil?
       raise ValidationError, "ID must be a positive integer" unless id.is_a?(Integer) && id.positive?
 
-      response = @api_service.get("#{ApiPaths::BATCH_MAILING_LIST}/#{id}")
+      path = ApiPaths::BATCH_MAILING_LIST_BY_ID.gsub(':id', id.to_s)
+      response = @api_service.get(path)
       response.to_h
     end
 
@@ -205,7 +208,7 @@ module Belpost
 
       # Validate status parameter
       if status
-        unless %w[committed uncommitted].include?(status)
+        unless Models::BatchStatus.valid?(status)
           raise ValidationError, "Status must be 'committed' or 'uncommitted'"
         end
 
@@ -281,6 +284,14 @@ module Belpost
       end
       
       response
+    end
+
+    # Translates a batch status code to its Russian translation
+    #
+    # @param status [String] The status code ('uncommitted' or 'committed')
+    # @return [String] The Russian translation or the original status if not found
+    def translate_batch_status(status)
+      Models::BatchStatus.translate(status)
     end
 
     private

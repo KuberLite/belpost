@@ -550,7 +550,8 @@ RSpec.describe Belpost::Client do
 
     it "fetches batch data using the API service" do
       client.find_batch_by_id(batch_id)
-      expect(api_service).to have_received(:get).with("#{Belpost::ApiPaths::BATCH_MAILING_LIST}/#{batch_id}")
+      path = Belpost::ApiPaths::BATCH_MAILING_LIST_BY_ID.gsub(':id', batch_id.to_s)
+      expect(api_service).to have_received(:get).with(path)
     end
 
     it "returns the API response data" do
@@ -1034,6 +1035,22 @@ RSpec.describe Belpost::Client do
           "API Error"
         )
       end
+    end
+  end
+
+  describe "#translate_batch_status" do
+    let(:client) { described_class.new(logger: logger) }
+
+    it "translates uncommitted status" do
+      expect(client.translate_batch_status("uncommitted")).to eq("в обработке")
+    end
+
+    it "translates committed status" do
+      expect(client.translate_batch_status("committed")).to eq("Сформированна")
+    end
+
+    it "returns original value for unknown status" do
+      expect(client.translate_batch_status("unknown")).to eq("unknown")
     end
   end
 end 

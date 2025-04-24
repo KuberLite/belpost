@@ -1,3 +1,11 @@
+## [0.12.1] - 2025-04-24
+### Added
+- Added Russian translations for batch statuses:
+  - 'uncommitted' -> 'В обработке' (in processing)
+  - 'committed' -> 'Сформирована' (formed)
+- New `BatchStatus` class for working with batch status values
+- Added `translate_batch_status` method for translating batch status values
+
 ## [0.12.0] - 2025-04-24
 ### Added
 - Added support for downloading batch mailing documents as ZIP archives via `download_batch_documents` method
