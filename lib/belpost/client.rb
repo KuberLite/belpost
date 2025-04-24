@@ -231,6 +231,33 @@ module Belpost
       response.to_h
     end
 
+    # Generates address labels for a batch mailing.
+    #
+    # This method allows generating address labels for shipments within a batch.
+    # Labels can only be generated for batches with the "In processing" status.
+    # When this request is made, all address labels for shipments within the batch will be regenerated.
+    # Label generation is available if the batch has the "has_documents_label" flag set to false.
+    #
+    # If the batch has the "is_partial_receipt" flag set to true and contains shipments with attachments,
+    # a PS112e form with attachment descriptions will be included in the response ZIP archive.
+    #
+    # If the batch has the "is_partial_receipt" flag set to true and contains shipments without attachments,
+    # address labels will not be generated for those shipments. Adding attachments to a shipment is mandatory
+    # for generating address labels in this case.
+    #
+    # @param batch_id [Integer] The ID of the batch to generate labels for
+    # @return [Hash] The parsed JSON response containing document information
+    # @raise [Belpost::ValidationError] If the batch_id parameter is invalid
+    # @raise [Belpost::ApiError] If the API returns an error response
+    def generate_batch_blanks(batch_id)
+      raise ValidationError, "Batch ID must be provided" if batch_id.nil?
+      raise ValidationError, "Batch ID must be a positive integer" unless batch_id.is_a?(Integer) && batch_id.positive?
+
+      path = ApiPaths::BATCH_MAILING_GENERATE_BLANK.gsub(':id', batch_id.to_s)
+      response = @api_service.post(path, {})
+      response.to_h
+    end
+
     private
 
     def format_address(address)

@@ -1,3 +1,9 @@
+## [0.11.2] - 2025-04-24
+### Added
+- Added support for generating address labels for batch mailings via `generate_batch_blanks` method
+- Support for generating address labels for shipments within batches with "In processing" status
+- Generation of PS112e form for batches with "is_partial_receipt" flag set to true that contain shipments with attachments
+
 ## [0.11.1] - 2025-04-24
 ### Changed
 - Enhanced validation for batch item schema to allow empty strings for `cash_on_delivery` and `declared_value` fields

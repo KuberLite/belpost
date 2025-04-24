@@ -356,6 +356,34 @@ filtered_batches = client.list_batches(
 )
 ```
 
+### Generating address labels for a batch
+
+```ruby
+client = Belpost::Client.new
+
+# Generate address labels for a batch with ID 17292
+documents = client.generate_batch_blanks(17292)
+puts documents
+
+# The response will contain document information with the following structure:
+# {
+#   "documents" => {
+#     "id" => 8660,
+#     "list_id" => 17292,
+#     "status" => "processing",
+#     "path" => nil,
+#     "expire_at" => nil,
+#     "created_at" => "2024-11-06 13:18:59",
+#     "updated_at" => "2024-11-06 16:03:36",
+#     "name" => "Партия (заказ) №91"
+#   }
+# }
+```
+
+Note: Address labels can only be generated for batches with the "In processing" status. When you make this request, all address labels for shipments within the batch will be regenerated. Label generation is available if the batch has the "has_documents_label" flag set to false.
+
+If the batch has the "is_partial_receipt" flag set to true and contains shipments with attachments, a PS112e form with attachment descriptions will be included in the response ZIP archive.
+
 ## Error handling
 
 The client may throw the following exceptions:

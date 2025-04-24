@@ -918,4 +918,54 @@ RSpec.describe Belpost::Client do
       end
     end
   end
+
+  describe "#generate_batch_blanks" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:batch_id) { 17292 }
+    let(:response_data) do
+      {
+        "documents" => {
+          "id" => 8660,
+          "list_id" => 17292,
+          "status" => "processing",
+          "path" => nil,
+          "expire_at" => nil,
+          "created_at" => "2024-11-06 13:18:59",
+          "updated_at" => "2024-11-06 16:03:36",
+          "name" => "Партия (заказ) №91"
+        }
+      }
+    end
+    let(:api_response) { instance_double(Belpost::Models::ApiResponse, to_h: response_data) }
+
+    before do
+      allow(api_service).to receive(:post).and_return(api_response)
+    end
+
+    it "raises ValidationError when batch_id is nil" do
+      expect { client.generate_batch_blanks(nil) }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be provided")
+    end
+    
+    it "raises ValidationError when batch_id is not a positive integer" do
+      expect { client.generate_batch_blanks(0) }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be a positive integer")
+      
+      expect { client.generate_batch_blanks("1") }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be a positive integer")
+    end
+
+    it "generates blanks for the batch using the API service" do
+      client.generate_batch_blanks(batch_id)
+      expect(api_service).to have_received(:post).with(
+        "/api/v1/business/batch-mailing/list/17292/generate-blank",
+        {}
+      )
+    end
+
+    it "returns the API response data" do
+      result = client.generate_batch_blanks(batch_id)
+      expect(result).to eq(response_data)
+    end
+  end
 end 
