@@ -384,6 +384,42 @@ Note: Address labels can only be generated for batches with the "In processing" 
 
 If the batch has the "is_partial_receipt" flag set to true and contains shipments with attachments, a PS112e form with attachment descriptions will be included in the response ZIP archive.
 
+### Committing a batch
+
+After a batch has been created and filled with items, you can commit it to change its status from "uncommitted" (or "В обработке") to "committed" (or "Сформирована").
+
+```ruby
+# Commit a batch with ID 19217
+result = client.commit_batch(19217)
+puts "New status: #{result["status"]}" # => "committed"
+```
+
+Note: You can only commit a batch that is currently uncommitted, has items, and includes contents if the batch has the "is_partial_receipt" flag set to true.
+
+### Downloading batch documents
+
+```ruby
+client = Belpost::Client.new
+
+# Generate address labels for a batch with ID 17292
+documents = client.generate_batch_blanks(17292)
+puts documents
+
+# The response will contain document information with the following structure:
+# {
+#   "documents" => {
+#     "id" => 8660,
+#     "list_id" => 17292,
+#     "status" => "processing",
+#     "path" => nil,
+#     "expire_at" => nil,
+#     "created_at" => "2024-11-06 13:18:59",
+#     "updated_at" => "2024-11-06 16:03:36",
+#     "name" => "Партия (заказ) №91"
+#   }
+# }
+```
+
 ## Error handling
 
 The client may throw the following exceptions:

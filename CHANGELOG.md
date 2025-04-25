@@ -1,3 +1,8 @@
+## [0.13.0] - 2025-04-25
+### Added
+- Added support for committing batch mailings via `commit_batch` method
+- Added ability to change batch status from "uncommitted" to "committed"
+
 ## [0.12.1] - 2025-04-24
 ### Added
 - Added Russian translations for batch statuses:

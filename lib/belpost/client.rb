@@ -261,6 +261,24 @@ module Belpost
       response.to_h
     end
 
+    # Commits a batch mailing by its ID, changing status from "uncommitted" to "committed".
+    #
+    # This method can only commit a batch that is currently uncommitted, has items and 
+    # includes contents if the batch has "is_partial_receipt" flag set to true.
+    #
+    # @param batch_id [Integer] The ID of the batch to commit
+    # @return [Hash] The committed batch data with updated status
+    # @raise [Belpost::ValidationError] If the batch_id parameter is invalid
+    # @raise [Belpost::ApiError] If the API returns an error response
+    def commit_batch(batch_id)
+      raise ValidationError, "Batch ID must be provided" if batch_id.nil?
+      raise ValidationError, "Batch ID must be a positive integer" unless batch_id.is_a?(Integer) && batch_id.positive?
+
+      path = ApiPaths::BATCH_MAILING_COMMIT.gsub(':id', batch_id.to_s)
+      response = @api_service.post(path, {})
+      response.to_h
+    end
+
     # Downloads batch mailing documents as a ZIP archive.
     #
     # This method retrieves a ZIP archive containing all documents related to a batch mailing.

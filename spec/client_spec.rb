@@ -970,6 +970,101 @@ RSpec.describe Belpost::Client do
     end
   end
 
+  describe "#commit_batch" do
+    let(:client) { described_class.new(logger: logger) }
+    let(:batch_id) { 19217 }
+    let(:response_data) do
+      {
+        "id" => 19217,
+        "name" => "Партия (заказ) №141",
+        "filial" => nil,
+        "trn" => "191015907",
+        "address" => "220141, ГОРОД МИНСК, УЛИЦА НИКИФОРОВА ДОМ 35 КВАРТИРА 21",
+        "iban" => "BY55ALFA30122000890080270000",
+        "bank" => "ЗАО 'АЛЬФА-БАНК'",
+        "formation_date" => "2024-11-06 17:16:20",
+        "update_post_system_at" => nil,
+        "created_at" => "2024-11-03 22:01:44",
+        "year_order_number" => 141,
+        "total_payable" => 9.24,
+        "total_vat" => 1.85,
+        "total_items" => 1,
+        "total_weight" => 50,
+        "postal_delivery_type" => "ecommerce_elite",
+        "direction" => "internal",
+        "payment_type" => "electronic_personal_account",
+        "card_number" => nil,
+        "card_name" => nil,
+        "negotiated_rate" => "0",
+        "category" => 0,
+        "phone" => nil,
+        "email" => "test@example.com",
+        "items" => [
+          {
+            "id" => 21983,
+            "list_id" => 19217,
+            "weight" => 50,
+            "cost" => 9.24,
+            "vat" => 1.85,
+            "notification" => "5",
+            "s10code" => "PC000148749BY",
+            "notification_s10code" => nil,
+            "recipient" => nil
+          }
+        ],
+        "documents" => {
+          "id" => 5597,
+          "list_id" => 19217,
+          "status" => "processing",
+          "path" => nil,
+          "expire_at" => nil,
+          "created_at" => "2024-11-06 17:16:20",
+          "updated_at" => "2024-11-06 17:16:20",
+          "name" => "Партия (заказ) №141"
+        },
+        "status" => "committed",
+        "postal_items_in_ops" => 1,
+        "is_document" => 1,
+        "is_declared_value" => false,
+        "is_partial_receipt" => false,
+        "total_additional_services_price" => 0,
+        "has_documents_label" => true
+      }
+    end
+    let(:api_response) { instance_double(Belpost::Models::ApiResponse, to_h: response_data) }
+
+    before do
+      allow(api_service).to receive(:post).and_return(api_response)
+    end
+
+    it "raises ValidationError when batch_id is nil" do
+      expect { client.commit_batch(nil) }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be provided")
+    end
+    
+    it "raises ValidationError when batch_id is not a positive integer" do
+      expect { client.commit_batch(0) }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be a positive integer")
+      
+      expect { client.commit_batch("1") }
+        .to raise_error(Belpost::ValidationError, "Batch ID must be a positive integer")
+    end
+
+    it "sends a POST request to the correct API endpoint" do
+      client.commit_batch(batch_id)
+      expect(api_service).to have_received(:post).with(
+        "/api/v1/business/batch-mailing/list/19217/commit",
+        {}
+      )
+    end
+
+    it "returns the API response data with updated status" do
+      result = client.commit_batch(batch_id)
+      expect(result).to eq(response_data)
+      expect(result["status"]).to eq("committed")
+    end
+  end
+
   describe "#download_batch_documents" do
     let(:client) { described_class.new(logger: logger) }
     let(:document_id) { 12345 }
