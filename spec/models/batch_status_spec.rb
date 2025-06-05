@@ -5,11 +5,11 @@ require "spec_helper"
 RSpec.describe Belpost::Models::BatchStatus do
   describe ".translate" do
     it "translates 'uncommitted' to 'в обработке'" do
-      expect(described_class.translate("uncommitted")).to eq("в обработке")
+      expect(described_class.translate("uncommitted")).to eq("В обработке")
     end
 
-    it "translates 'committed' to 'Сформированна'" do
-      expect(described_class.translate("committed")).to eq("Сформированна")
+    it "translates 'committed' to 'Сформирована'" do
+      expect(described_class.translate("committed")).to eq("Сформирована")
     end
 
     it "returns original value for unknown status" do

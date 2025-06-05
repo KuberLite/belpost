@@ -71,8 +71,7 @@ module Belpost
       ecommerce_optima: {
         negotiated_rate: false,
         declared_value: [true, false],
-        partial_receipt: false,
-        postal_items_in_ops: [true, false]
+        partial_receipt: false
       }
     }.freeze
 

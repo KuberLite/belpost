@@ -1137,15 +1137,15 @@ RSpec.describe Belpost::Client do
     let(:client) { described_class.new(logger: logger) }
 
     it "translates uncommitted status" do
-      expect(client.translate_batch_status("uncommitted")).to eq("в обработке")
+      expect(client.translate_batch_status("uncommitted")).to eq("В обработке")
     end
 
     it "translates committed status" do
-      expect(client.translate_batch_status("committed")).to eq("Сформированна")
+      expect(client.translate_batch_status("committed")).to eq("Сформирована")
     end
 
     it "returns original value for unknown status" do
       expect(client.translate_batch_status("unknown")).to eq("unknown")
     end
   end
-end 
+end
