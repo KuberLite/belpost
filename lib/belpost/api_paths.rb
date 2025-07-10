@@ -26,6 +26,6 @@ module Belpost
     GEO_DIRECTORY_ADDRESSES = "/api/v1/business/geo-directory/addresses"
 
     # Postcodes paths
-    POSTCODES_AUTOCOMPLETE = "/api/v1/business/postcodes/autocomplete"
+    POSTCODES_AUTOCOMPLETE = "/api/v1/postcodes/autocomplete"
   end
 end
