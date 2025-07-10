@@ -141,7 +141,7 @@ module Belpost
       raise ValidationError, "Address must be filled" if address.empty?
 
       formatted_address = format_address(address)
-      response = @api_service.get(ApiPaths::GEO_DIRECTORY_SEARCH_ADDRESS, { search: formatted_address })
+      response = @api_service.get(ApiPaths::POSTCODES_AUTOCOMPLETE, { search: formatted_address })
       response.to_h
     end
 
