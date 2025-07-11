@@ -220,7 +220,7 @@ RSpec.describe Belpost::Client do
 
     before do
       allow(api_service).to receive(:get).with(
-        Belpost::ApiPaths::GEO_DIRECTORY_SEARCH_ADDRESS,
+        Belpost::ApiPaths::POSTCODES_AUTOCOMPLETE,
         { search: formatted_address }
       ).and_return(Belpost::Models::ApiResponse.new(
         data: api_response,
@@ -233,7 +233,7 @@ RSpec.describe Belpost::Client do
       result = client.find_address_by_string(address)
       expect(result).to eq(api_response)
       expect(api_service).to have_received(:get).with(
-        Belpost::ApiPaths::GEO_DIRECTORY_SEARCH_ADDRESS,
+        Belpost::ApiPaths::POSTCODES_AUTOCOMPLETE,
         { search: formatted_address }
       )
     end
